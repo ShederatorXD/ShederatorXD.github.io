@@ -25,7 +25,7 @@ export default function SideNav({setSelect,handleToggle,showSideNav,setShowSideN
         const truePokemonIndex = first151Pokemon.indexOf(pokemon)
         return(
           <button key={index} className={'nav-card'} onClick={() => {
-            setSelect(truePokemonIndex+1)
+            setSelect(truePokemonIndex)
             setShowSideNav(false)
             }}>
             <p>{getFullPokedexNumber(truePokemonIndex)}</p>
