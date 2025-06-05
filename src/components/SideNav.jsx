@@ -4,10 +4,13 @@ import { first151Pokemon, getFullPokedexNumber } from "../utils"
 export default function SideNav({setSelect,handleToggle,showSideNav,setShowSideNav}) {
   const [search,setSearch] = useState('')
 
-  const filtered = first151Pokemon.filter((val,i) =>{
-    if(toString(getFullPokedexNumber(i)).includes(search))
+  const filtered = first151Pokemon.map((pokemon, index) => ({
+    name: pokemon,
+    index: index
+  })).filter(({name, index}) => {
+    if(toString(getFullPokedexNumber(index)).includes(search))
       return true
-    if(val.toLowerCase().includes(search.toLowerCase()))
+    if(name.toLowerCase().includes(search.toLowerCase()))
       return true
     return false
   })
@@ -21,18 +24,15 @@ export default function SideNav({setSelect,handleToggle,showSideNav,setShowSideN
         <h1 className='text-gradient'>Pokémon</h1>
       </div>
       <input placeholder='Eg. 001 or Bulba...' value={search} onChange={(event)=>{setSearch(event.target.value)}}/>
-      {filtered.map((pokemon,index)=>{
-        const truePokemonIndex = first151Pokemon.indexOf(pokemon)
-        return(
-          <button key={index} className={'nav-card'} onClick={() => {
-            setSelect(truePokemonIndex)
-            setShowSideNav(false)
-            }}>
-            <p>{getFullPokedexNumber(truePokemonIndex)}</p>
-            <p>{pokemon}</p>
-          </button>
-        )
-      })}
+      {filtered.map(({name, index}) => (
+        <button key={index} className={'nav-card'} onClick={() => {
+          setSelect(index)
+          setShowSideNav(false)
+        }}>
+          <p>{getFullPokedexNumber(index)}</p>
+          <p>{name}</p>
+        </button>
+      ))}
     </nav>
    )
 }
