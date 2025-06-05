@@ -120,7 +120,7 @@ export default function PokeCard({select, setSelect}) {
           </div>
           <img 
             className='default-image' 
-            src={`/pokemon/${getFullPokedexNumber(select)}.png`}
+            src={new URL(`/pokemon/${getFullPokedexNumber(select)}.png`, window.location.origin).href}
           />
           <div className='image-container'>
             {imgList.map((spriteKey, i) => {
