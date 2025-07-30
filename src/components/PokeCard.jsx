@@ -73,7 +73,7 @@ export default function PokeCard({select, setSelect}) {
     async function fetchData() {
       setLoading(true);
       try {
-        const url = `https://pokeapi.co/api/v2/pokemon/${select}`;
+        const url = `https://pokeapi.co/api/v2/pokemon/${select + 1}`;
         const response = await fetch(url);
         const json = await response.json();
         setData(json);
@@ -120,7 +120,7 @@ export default function PokeCard({select, setSelect}) {
           </div>
           <img 
             className='default-image' 
-            src={new URL(`/pokemon/${getFullPokedexNumber(select)}.png`, window.location.origin).href}
+            src={`/pokemon/${getFullPokedexNumber(select)}.png`}
           />
           <div className='image-container'>
             {imgList.map((spriteKey, i) => {
