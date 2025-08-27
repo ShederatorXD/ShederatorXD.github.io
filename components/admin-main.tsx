@@ -6,9 +6,10 @@ import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
 import { Input } from "@/components/ui/input"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 import {
   Settings,
   Users,
@@ -24,6 +25,7 @@ import {
   UserCheck,
   Calendar,
   RefreshCcw,
+  Trash2,
 } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 import { supabase } from "@/lib/supabase"
@@ -186,6 +188,8 @@ export function AdminMain() {
   const [editUser, setEditUser] = useState<{ name: string; role: string; eco_points: number; badges: string; phone: string; home_address: string; avatar_url: string; banned: boolean; status: 'Active' | 'Suspended' | 'Banned' }>({ name: "", role: "rider", eco_points: 0, badges: "", phone: "", home_address: "", avatar_url: "", banned: false, status: 'Active' })
   const [savingUser, setSavingUser] = useState(false)
   const [selectedUserEmail, setSelectedUserEmail] = useState<string | null>(null)
+  const [purging, setPurging] = useState(false)
+  const [purgeConfirmOpen, setPurgeConfirmOpen] = useState(false)
 
   // Sparkline demo data (replace with real 7-day aggregates if desired)
   const [ridesTrend, setRidesTrend] = useState<SparkDataPoint[]>([])
@@ -462,6 +466,60 @@ export function AdminMain() {
       alert('Failed to delete user account. Ensure server key is configured.')
     } finally {
       setSavingUser(false)
+    }
+  }
+
+  const purgeAllData = async () => {
+    if (!isAdmin || !user?.id) return
+    
+    try {
+      setPurging(true)
+      setPurgeConfirmOpen(false)
+      
+      // Get current session for admin verification
+      const { data: sessionData } = await supabase.auth.getSession()
+      const accessToken = sessionData.session?.access_token
+      if (!accessToken) {
+        throw new Error('No access token available')
+      }
+      
+      // Call purge API endpoint
+      const response = await fetch('/api/admin/purge-all', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${accessToken}`
+        },
+        body: JSON.stringify({
+          adminId: user.id,
+          adminEmail: user.email
+        })
+      })
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || `HTTP ${response.status}`)
+      }
+      
+      const result = await response.json()
+      if (!result.success) {
+        throw new Error(result.error || 'Purge operation failed')
+      }
+      
+      // Clear local state
+      setUsers([])
+      setPosts([])
+      setRewards([])
+      setRecentRidesData([])
+      setStats({ totalRides: 0, co2SavedKg: 0, newUsers: 0, totalEcoPoints: 0 })
+      
+      alert('All data has been purged successfully. Only your admin account remains.')
+      
+    } catch (error) {
+      console.error('Purge failed:', error)
+      alert(`Purge failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    } finally {
+      setPurging(false)
     }
   }
 
@@ -949,6 +1007,44 @@ export function AdminMain() {
                 <CardTitle className="text-lg">Quick Actions</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
+                <AlertDialog open={purgeConfirmOpen} onOpenChange={setPurgeConfirmOpen}>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="destructive" size="sm" className="w-full justify-start bg-red-600 hover:bg-red-700 text-white border-red-600">
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Purge All Data
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent className="max-w-md">
+                    <AlertDialogHeader>
+                      <AlertDialogTitle className="flex items-center gap-2 text-red-600">
+                        <AlertTriangle className="w-5 h-5" />
+                        Nuclear Option
+                      </AlertDialogTitle>
+                      <AlertDialogDescription className="text-left">
+                        This will permanently delete:
+                        <br />• All user accounts and profiles
+                        <br />• All rides, posts, and community data
+                        <br />• All avatar images (except admin's)
+                        <br />• All community post images
+                        <br />• All rewards and impact logs
+                        <br />• Everything except your admin account
+                        <br /><br />
+                        <strong>This action cannot be undone.</strong>
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={purgeAllData}
+                        disabled={purging}
+                        className="bg-red-600 hover:bg-red-700 text-white"
+                      >
+                        {purging ? 'Purging...' : 'Yes, Purge Everything'}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+
                 <Button variant="outline" size="sm" className="w-full justify-start bg-transparent">
                   <Calendar className="w-4 h-4 mr-2" />
                   Generate Reports

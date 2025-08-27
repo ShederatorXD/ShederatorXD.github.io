@@ -91,8 +91,16 @@ export function CommunityMain() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null)
   const [userRoles, setUserRoles] = useState<Record<string, string>>({})
   const [currentCity, setCurrentCity] = useState<string>('Mumbai')
+  const [selectedProfile, setSelectedProfile] = useState<{ name: string; avatar: string | null; role: string } | null>(null)
+  const [profileModalOpen, setProfileModalOpen] = useState(false)
 
   const initialsFor = (name: string) => name.split(" ").map((n) => n[0]).join("")
+
+  const openProfileModal = (userName: string, avatarUrl: string | null, userId: string | null) => {
+    const role = userId ? userRoles[userId] || 'rider' : 'rider'
+    setSelectedProfile({ name: userName, avatar: avatarUrl, role })
+    setProfileModalOpen(true)
+  }
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -531,50 +539,59 @@ export function CommunityMain() {
   const handlePost = async () => {
     const content = newPost.trim()
     if (!content && !selectedImage) return
-    
-    let imageUrl = null
+    if (!user?.id) {
+      alert('Please log in to post to the community.')
+      return
+    }
+
+    let imageUrl: string | null = null
+    const now = Date.now()
+    const localId = `local-${now}`
     let localPost: CommunityPost
 
     try {
       // Upload image if selected
       if (selectedImage) {
         setUploadingImage(true)
-        const ext = selectedImage.name.split('.').pop()
-        const path = `community-images/${user?.id}-${Date.now()}.${ext}`
-        
+        const ext = selectedImage.name.includes('.') ? selectedImage.name.split('.').pop() : 'jpg'
+        const path = `community-images/${user.id}-${now}.${ext}`
+
         const { data: upload, error: uploadError } = await supabase.storage
-          .from('avatars') // Using avatars bucket for now, you can create a community-images bucket
-          .upload(path, selectedImage, { 
+          .from('avatars') // Using existing public bucket
+          .upload(path, selectedImage, {
             upsert: true,
             cacheControl: '3600'
           })
-        
-        if (uploadError) throw uploadError
-        
+
+        if (uploadError) {
+          alert('Image upload failed. Please try a smaller image or different format.')
+          throw uploadError
+        }
+
         const { data: urlData } = await supabase.storage
           .from('avatars')
           .getPublicUrl(upload.path)
-        
+
         imageUrl = urlData.publicUrl
       }
 
+      const created_at = new Date(now).toISOString()
       const insert = {
-        user_id: user?.id || null,
-        user_name: user?.name || "Anonymous EcoRider",
-        avatar_url: user?.avatarUrl || null,
+        user_id: user.id,
+        user_name: user.name || 'Anonymous EcoRider',
+        avatar_url: (user as any).avatarUrl || null,
         content,
         image_url: imageUrl,
         likes: 0,
         comments_count: 0,
         type: null,
-        liked_by: [],
+        liked_by: [] as string[],
+        created_at,
       }
-      
-      const created_at = new Date().toISOString()
-      
+
       // Optimistic local add
       localPost = {
-        id: `local-${Date.now()}`,
+        id: localId,
         user_id: insert.user_id,
         user_name: insert.user_name,
         avatar_url: insert.avatar_url,
@@ -586,25 +603,51 @@ export function CommunityMain() {
         type: null,
         liked_by: [],
       }
-      
+
       setPosts((p) => [localPost, ...p])
       setNewPost("")
       setSelectedImage(null)
       setImagePreview(null)
 
-      // Persist to DB
-      await supabase.from("community_posts").insert({ ...insert, created_at })
+      // Persist to DB and replace optimistic post with real row
+      const { data: inserted, error: insertError } = await supabase
+        .from('community_posts')
+        .insert(insert)
+        .select()
+        .single()
 
-      // Broadcast to other clients
-      supabase.channel("community-feed").send({
-        type: "broadcast",
-        event: "new_post",
-        payload: localPost,
-      })
+      if (insertError) {
+        alert('Posting failed. Please try again in a moment.')
+        throw insertError
+      }
+
+      if (inserted) {
+        const realPost: CommunityPost = {
+          id: inserted.id,
+          user_id: inserted.user_id,
+          user_name: inserted.user_name,
+          avatar_url: inserted.avatar_url,
+          content: inserted.content,
+          image_url: inserted.image_url,
+          created_at: inserted.created_at,
+          likes: inserted.likes,
+          comments_count: inserted.comments_count,
+          type: inserted.type,
+          liked_by: inserted.liked_by || [],
+        }
+        setPosts((prev) => prev.map(p => (p.id === localId ? realPost : p)))
+
+        // Broadcast to other clients
+        supabase.channel('community-feed').send({
+          type: 'broadcast',
+          event: 'new_post',
+          payload: realPost,
+        })
+      }
     } catch (error) {
       console.error('Error posting:', error)
       // Remove optimistic post on error
-      setPosts((p) => p.filter(post => post.id !== `local-${Date.now()}`))
+      setPosts((p) => p.filter(post => post.id !== localId))
       alert('Failed to post. Please try again.')
     } finally {
       setUploadingImage(false)
@@ -745,16 +788,16 @@ export function CommunityMain() {
                 ) : (
                   posts.map((post) => (
                                          <div key={post.id} className="border-b border-border last:border-b-0 pb-4 last:pb-0 hover:bg-muted/30 transition-colors rounded-lg p-2 -m-2">
-                       <div className="flex items-start gap-3">
-                         <Avatar className="w-10 h-10 ring-2 ring-primary/10 hover:ring-primary/20 transition-all">
-                           <AvatarImage 
-                             src={post.avatar_url || undefined} 
-                             onError={(e)=>{(e.currentTarget as HTMLImageElement).src='/placeholder-user.jpg'}} 
-                           />
-                           <AvatarFallback className="text-xs font-medium">
-                             {initialsFor(post.user_name || "E R")}
-                           </AvatarFallback>
-                         </Avatar>
+                                                <div className="flex items-start gap-3">
+                           <Avatar className="w-10 h-10 ring-2 ring-primary/10 hover:ring-primary/20 transition-all cursor-pointer hover:scale-105" onClick={() => openProfileModal(post.user_name, post.avatar_url, post.user_id)}>
+                             <AvatarImage 
+                               src={post.avatar_url || undefined} 
+                               onError={(e)=>{(e.currentTarget as HTMLImageElement).src='/placeholder-user.jpg'}} 
+                             />
+                             <AvatarFallback className="text-xs font-medium">
+                               {initialsFor(post.user_name || "E R")}
+                             </AvatarFallback>
+                           </Avatar>
                          <div className="flex-1">
                            <div className="flex items-center justify-between mb-2">
                              <div className="flex items-center gap-2">
@@ -863,13 +906,13 @@ export function CommunityMain() {
                                <div className="space-y-3 mb-4 max-h-60 overflow-y-auto">
                                  {comments[post.id]?.length > 0 ? (
                                    comments[post.id].map((comment) => (
-                                     <div key={comment.id} className="flex items-start gap-2">
-                                       <Avatar className="w-6 h-6">
-                                         <AvatarImage src={comment.avatar_url || undefined} />
-                                         <AvatarFallback className="text-xs">
-                                           {initialsFor(comment.user_name)}
-                                         </AvatarFallback>
-                                       </Avatar>
+                                                                            <div key={comment.id} className="flex items-start gap-2">
+                                         <Avatar className="w-6 h-6 cursor-pointer hover:scale-110 transition-transform" onClick={() => openProfileModal(comment.user_name, comment.avatar_url, comment.user_id)}>
+                                           <AvatarImage src={comment.avatar_url || undefined} />
+                                           <AvatarFallback className="text-xs">
+                                             {initialsFor(comment.user_name)}
+                                           </AvatarFallback>
+                                         </Avatar>
                                        <div className="flex-1 bg-muted/30 rounded-lg p-2">
                                          <div className="flex items-center gap-2 mb-1">
                                            <span className="font-medium text-xs">{comment.user_name}</span>
@@ -1082,6 +1125,45 @@ export function CommunityMain() {
           </div>
         </div>
       </div>
+
+      {/* Profile Picture Modal */}
+      <Dialog open={profileModalOpen} onOpenChange={setProfileModalOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-center">Profile Picture</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 text-center">
+            {selectedProfile && (
+              <>
+                <div className="flex justify-center">
+                  <Avatar className="w-32 h-32 ring-4 ring-primary/20">
+                    <AvatarImage 
+                      src={selectedProfile.avatar || undefined} 
+                      onError={(e)=>{(e.currentTarget as HTMLImageElement).src='/placeholder-user.jpg'}} 
+                    />
+                    <AvatarFallback className="text-3xl font-medium">
+                      {initialsFor(selectedProfile.name)}
+                    </AvatarFallback>
+                  </Avatar>
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold">{selectedProfile.name}</h3>
+                  <div className="flex items-center justify-center gap-2 mt-2">
+                    <Badge variant="secondary" className="capitalize">
+                      {selectedProfile.role}
+                    </Badge>
+                    {selectedProfile.role === 'admin' && (
+                      <Badge variant="default" className="bg-blue-500">
+                        Verified ✓
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
 
        {/* Delete Confirmation Dialog */}
        <Dialog open={!!showDeleteConfirm} onOpenChange={() => setShowDeleteConfirm(null)}>

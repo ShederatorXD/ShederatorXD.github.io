@@ -60,7 +60,10 @@ export function ProfileMain() {
 
   useEffect(() => {
     const init = async () => {
-      if (!user) return
+      if (!user) {
+        setLoading(false)
+        return
+      }
       
       setLoading(true)
       try {
@@ -70,7 +73,14 @@ export function ProfileMain() {
         setLastName(nameParts.slice(1).join(" ") || "")
         setEmail(user.email || "")
         
-        const { data } = await supabase.from("profiles").select("phone,avatar_url,home_address,created_at,eco_points").eq("id", user.id).maybeSingle()
+        const { data, error: profileError } = await supabase
+          .from("profiles")
+          .select("phone,avatar_url,home_address,created_at,eco_points")
+          .eq("id", user.id)
+          .maybeSingle()
+        if (profileError) {
+          console.error('Profile fetch error:', profileError)
+        }
         const initialPhone = (data as any)?.phone || ""
         const initialHome = (data as any)?.home_address || ""
         setPhone(initialPhone)
@@ -395,7 +405,10 @@ export function ProfileMain() {
                     
                     // Update profile
                     try {
-                      await supabase.from('profiles').upsert({ id: user.id, avatar_url: publicUrl })
+                      const { error: upsertError } = await supabase.from('profiles').upsert({ id: user.id, avatar_url: publicUrl })
+                      if (upsertError) {
+                        console.error('Upsert profile avatar error:', upsertError)
+                      }
                       await refreshUserData()
                     } catch (err) {
                       console.error('Profile update error:', err)

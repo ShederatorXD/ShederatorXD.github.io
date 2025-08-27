@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
-import { Leaf, TreePine, TrendingUp, Users, Award, BarChart3 } from "lucide-react"
+import { Leaf, TreePine, TrendingUp, Users, Award, BarChart3, Car, Bike } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 import { useAuth } from "@/components/AuthProvider"
 
@@ -104,7 +104,67 @@ export function ImpactMain() {
   if (loading) {
     return (
       <div className="flex-1 p-6 overflow-auto">
-        <div className="text-sm text-muted-foreground">Loading impact data…</div>
+        <div className="min-h-[70vh] flex items-center justify-center">
+          <div className="w-full max-w-lg eco-anim">
+            <div className="relative h-36">
+              {/* Track */}
+              <div className="absolute left-2 right-2 top-1/2 -translate-y-1/2 h-2 bg-muted rounded-full" />
+
+              {/* CO₂ bubbles and leaves along the path */}
+              <div className="absolute left-2 right-2 top-0 bottom-0">
+                {[10,25,40,55,70,85].map((pct, i) => (
+                  <div key={`node-${i}`} className="absolute" style={{ left: `${pct}%`, top: '44%' } as any}>
+                    {/* CO2 bubble (fades out as car passes) */}
+                    <div className="relative -translate-x-1/2 -translate-y-1/2 animate-[bubbleOut_3.2s_cubic-bezier(0.22,0.61,0.36,1)_infinite]" style={{ animationDelay: `${i*0.3}s` } as any}>
+                      <svg width="22" height="22" viewBox="0 0 22 22" className="drop-shadow-sm">
+                        <circle cx="11" cy="11" r="10" fill="rgba(107,114,128,0.55)" />
+                        <text x="11" y="13" textAnchor="middle" fontSize="8" fill="#f3f4f6">CO₂</text>
+                      </svg>
+                    </div>
+                    {/* Leaf sprout (fades in after car) */}
+                    <div className="relative -translate-x-1/2 -translate-y-1/2 opacity-0 animate-[leafIn_3.2s_cubic-bezier(0.22,0.61,0.36,1)_infinite]" style={{ animationDelay: `${0.6 + i*0.3}s` } as any}>
+                      <Leaf className="w-4 h-4 text-green-600" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Vehicle moving across full path */}
+              <div className="absolute left-2 right-2 top-1/2 -translate-y-1/2">
+                <div className="relative h-0">
+                  <div className="absolute -translate-y-1/2 -translate-x-1/2 animate-[driveX_3.2s_cubic-bezier(0.22,0.61,0.36,1)_infinite] will-change-transform">
+                    <Car className="w-10 h-10 text-primary drop-shadow-md" />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="mt-5 text-center text-sm text-muted-foreground">Calculating your eco impact…</div>
+          </div>
+        </div>
+
+        {/* Local styles for the loading animation */}
+        <style jsx>{`
+          /* Car travels end-to-end inside the padded track */
+          @keyframes driveX {
+            0% { transform: translateX(0%) translateY(-50%); left: 0%; }
+            50% { transform: translateX(100%) translateY(-50%); left: 100%; }
+            100% { transform: translateX(0%) translateY(-50%); left: 0%; }
+          }
+          /* Bubble fades/shrinks as if absorbed */
+          @keyframes bubbleOut {
+            0% { opacity: 1; transform: translate(-50%, -50%) scale(1); filter: grayscale(0.2); }
+            55% { opacity: 0.7; transform: translate(-50%, -50%) scale(0.9); }
+            65% { opacity: 0.3; transform: translate(-50%, -50%) scale(0.6); filter: grayscale(1); }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(0.4); }
+          }
+          /* Leaf sprouts after bubble fades */
+          @keyframes leafIn {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.6); }
+            60% { opacity: 0; transform: translate(-50%, -50%) scale(0.6); }
+            75% { opacity: 0.8; transform: translate(-50%, -50%) scale(1); }
+            100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+          }
+        `}</style>
       </div>
     )
   }

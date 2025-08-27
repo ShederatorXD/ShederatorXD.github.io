@@ -1,0 +1,12 @@
+name: (removed) GitHub Pages deploy
+
+on:
+  workflow_dispatch:
+
+jobs:
+  noop:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "GitHub Pages deployment disabled; using Vercel instead."
+
+

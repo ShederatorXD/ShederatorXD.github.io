@@ -19,6 +19,7 @@ import {
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { useAuth } from "@/components/AuthProvider"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 const sidebarItems = [
   {
@@ -125,11 +126,19 @@ export function DashboardSidebar() {
       {/* User Section */}
       <div className="p-4 border-t border-border">
         <div className="flex items-center gap-3 mb-4 fade-in">
-          <div className="w-10 h-10 bg-muted rounded-full flex items-center justify-center">
-            <User className="w-5 h-5" />
-          </div>
+          <Avatar className="w-10 h-10">
+            <AvatarImage src={user?.avatarUrl || undefined} />
+            <AvatarFallback>
+              {(user?.name || user?.email || 'U').slice(0, 2).toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
           <div className="flex-1">
-            <div className="font-medium text-sm">{user?.name || 'User'}</div>
+            <div className="font-medium text-sm flex items-center gap-2">
+              <span>{user?.name || 'User'}</span>
+              {user?.email?.endsWith('@kiit.ac.in') && (
+                <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-500/15 text-blue-600">KIIT ADMIN</span>
+              )}
+            </div>
             <div className="text-xs text-muted-foreground">{user?.email || ''}</div>
           </div>
         </div>

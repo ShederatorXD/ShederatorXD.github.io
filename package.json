@@ -4,9 +4,11 @@
   "private": true,
   "scripts": {
     "build": "next build",
+    "export": "next export",
     "dev": "next dev",
     "lint": "next lint",
-    "start": "next start"
+    "start": "next start",
+    "deploy": "npm run build && npm run export"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

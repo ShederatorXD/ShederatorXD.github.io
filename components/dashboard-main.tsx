@@ -10,6 +10,7 @@ import { useUserValidation } from "@/hooks/use-user-validation"
 import { useEffect, useState } from "react"
 import { supabase } from "@/lib/supabase"
 import Link from "next/link"
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, BarChart, Bar } from "recharts"
 
 interface UserStats {
   ridesTaken: number
@@ -45,6 +46,15 @@ export function DashboardMain() {
   
   const [recentRides, setRecentRides] = useState<RecentRide[]>([])
   const [loading, setLoading] = useState(true)
+  const [rides7d, setRides7d] = useState<{ day: string; count: number }[]>([])
+  const tips = [
+    'Combine trips to reduce overall travel emissions.',
+    'Prefer public transport or carpool for longer distances.',
+    'Keep tires properly inflated to improve EV efficiency.',
+    'Use e-bikes for short city commutes to cut CO₂.',
+    'Avoid peak traffic hours to reduce idling emissions.',
+  ]
+  const [tipIndex, setTipIndex] = useState(0)
 
   // Fetch user statistics and recent rides
   useEffect(() => {
@@ -53,12 +63,19 @@ export function DashboardMain() {
     }
   }, [user?.id])
 
+  useEffect(() => {
+    const id = setInterval(() => {
+      setTipIndex((i) => (i + 1) % tips.length)
+    }, 5000)
+    return () => clearInterval(id)
+  }, [])
+
   const fetchDashboardData = async () => {
     if (!user?.id) return
     
     setLoading(true)
     try {
-      // Fetch rides data
+      // Fetch recent rides for list
       const { data: rides, error: ridesError } = await supabase
         .from('rides')
         .select('*')
@@ -113,6 +130,36 @@ export function DashboardMain() {
           mode: ride.mode || 'Electric Vehicle'
         })))
       }
+
+      // Fetch last 7 days rides counts (local date buckets to avoid TZ drift)
+      const since = new Date()
+      since.setDate(since.getDate() - 6)
+      since.setHours(0, 0, 0, 0)
+
+      const { data: ridesWindow } = await supabase
+        .from('rides')
+        .select('id, created_at')
+        .eq('user_id', user.id)
+        .gte('created_at', since.toISOString())
+
+      // Precompute local-date keys for the last 7 days
+      const days: string[] = [] // 'YYYY-MM-DD' in local time
+      const buckets = new Map<string, number>()
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(since)
+        d.setDate(since.getDate() + i)
+        const key = d.toLocaleDateString('en-CA') // YYYY-MM-DD
+        days.push(key)
+        buckets.set(key, 0)
+      }
+      ;(ridesWindow || []).forEach((r) => {
+        const rideKey = new Date(r.created_at).toLocaleDateString('en-CA')
+        if (buckets.has(rideKey)) {
+          buckets.set(rideKey, (buckets.get(rideKey) || 0) + 1)
+        }
+      })
+      const series = days.map((k) => ({ day: k.slice(5), count: buckets.get(k) || 0 }))
+      setRides7d(series)
     } catch (error) {
       console.error('Error fetching dashboard data:', error)
     } finally {
@@ -148,6 +195,16 @@ export function DashboardMain() {
       default:
         return <Car className="w-5 h-5 text-primary" />
     }
+  }
+
+  // Truncate long locations nicely using comma segments, then length limit
+  const shortenLocation = (text: string, maxLen: number = 60) => {
+    if (!text) return 'Unknown'
+    const parts = text.split(',').map(p => p.trim()).filter(Boolean)
+    const primary = parts.slice(0, 2).join(', ')
+    const candidate = primary || parts[0] || text
+    if (candidate.length <= maxLen) return candidate
+    return candidate.slice(0, maxLen - 1) + '…'
   }
 
   return (
@@ -287,37 +344,62 @@ export function DashboardMain() {
           </CardContent>
         </Card>
 
-        {/* Quick Actions */}
+        {/* Quick Actions and Sidebar Widgets */}
         <Card className="border-0 shadow-md card-lift fade-in">
           <CardHeader>
             <CardTitle>Quick Actions</CardTitle>
             <CardDescription>Get started with your next sustainable journey</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <Link href="/dashboard/book-ride">
-              <Button className="w-full justify-start gap-3 h-12 btn-hover">
-                <Car className="w-5 h-5" />
-                Book Immediate Ride
-              </Button>
-            </Link>
-            <Link href="/dashboard/book-ride">
-              <Button variant="outline" className="w-full justify-start gap-3 h-12 bg-transparent btn-hover">
-                <Clock className="w-5 h-5" />
-                Schedule Future Ride
-              </Button>
-            </Link>
-            <Link href="/dashboard/ecopoints">
-              <Button variant="outline" className="w-full justify-start gap-3 h-12 bg-transparent btn-hover">
-                <Coins className="w-5 h-5" />
-                Redeem EcoPoints
-              </Button>
-            </Link>
-            <Link href="/dashboard/impact">
-              <Button variant="outline" className="w-full justify-start gap-3 h-12 bg-transparent btn-hover">
-                <Leaf className="w-5 h-5" />
-                View Impact Report
-              </Button>
-            </Link>
+          <CardContent className="space-y-6">
+            {/* Actions Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <Link href="/dashboard/book-ride">
+                <Button className="w-full justify-start gap-3 h-12 btn-hover">
+                  <Car className="w-5 h-5" />
+                  Book Ride
+                </Button>
+              </Link>
+              <Link href="/dashboard/book-ride">
+                <Button variant="outline" className="w-full justify-start gap-3 h-12 bg-transparent btn-hover">
+                  <Clock className="w-5 h-5" />
+                  Schedule Ride
+                </Button>
+              </Link>
+              <Link href="/dashboard/ecopoints">
+                <Button variant="outline" className="w-full justify-start gap-3 h-12 bg-transparent btn-hover">
+                  <Coins className="w-5 h-5" />
+                  Redeem Points
+                </Button>
+              </Link>
+              <Link href="/dashboard/impact">
+                <Button variant="outline" className="w-full justify-start gap-3 h-12 bg-transparent btn-hover">
+                  <Leaf className="w-5 h-5" />
+                  Impact Report
+                </Button>
+              </Link>
+            </div>
+
+            {/* 7-Day Rides Chart */}
+            <div>
+              <div className="text-sm font-medium mb-2">Rides in the last 7 days</div>
+              <div className="h-36 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={rides7d}>
+                    <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.2} />
+                    <XAxis dataKey="day" tick={{ fontSize: 12 }} />
+                    <YAxis allowDecimals={false} tick={{ fontSize: 12 }} width={24} />
+                    <Tooltip contentStyle={{ fontSize: 12, padding: '6px 8px' }} labelStyle={{ fontSize: 12 }} itemStyle={{ fontSize: 12 }} cursor={{ fill: 'transparent' }} />
+                    <Bar dataKey="count" fill="hsl(var(--primary))" radius={[4,4,0,0]} barSize={18} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            {/* Tips Section */}
+            <div className="p-3 bg-muted/40 rounded-lg">
+              <div className="text-sm font-medium mb-1">Tips for Greener Travel</div>
+              <div className="text-sm text-muted-foreground min-h-[2rem] transition-all">{tips[tipIndex]}</div>
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -351,7 +433,7 @@ export function DashboardMain() {
                   </div>
                   <div className="flex-1">
                     <div className="font-medium text-sm">
-                      {ride.mode} ride from {ride.pickup_location} to {ride.destination}
+                      {ride.mode} ride from {shortenLocation(ride.pickup_location)} to {shortenLocation(ride.destination)}
                     </div>
                     <div className="text-xs text-muted-foreground">
                       {getTimeAgo(ride.created_at)} • Saved {ride.co2_saved_kg} kg CO₂
