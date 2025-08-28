@@ -4,10 +4,6 @@ import { createClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 import type { Database } from '../../../../../lib/database.types';
 
-// Initialize Supabase client
-const cookieStore = cookies();
-const supabase = createRouteHandlerClient<Database>({ cookies: () => cookieStore });
-
 // GET /api/admin/support-tickets/[id]
 export async function GET(
   request: Request,
