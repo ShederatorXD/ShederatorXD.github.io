@@ -7,9 +7,14 @@ import { Separator } from "@/components/ui/separator"
 import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Wallet, Plus, CreditCard, ArrowUpRight, ArrowDownLeft, Gift, Star, Calendar, MapPin } from "lucide-react"
-import { useState } from "react"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Wallet, Plus, CreditCard, ArrowUpRight, ArrowDownLeft, Gift, Star, Calendar, MapPin, AlertCircle, CheckCircle } from "lucide-react"
+import { useState, useEffect } from "react"
 import { useAuth } from "@/components/AuthProvider"
+import { GooglePayButton } from "@/components/google-pay-button"
+import { UPIPaymentButton } from "@/components/upi-payment-button"
+import { PAYMENT_METHODS, PAYMENT_CONFIG } from "@/lib/payment-config"
+import { useToast } from "@/hooks/use-toast"
 
 const recentTransactions = [
   {
@@ -97,6 +102,7 @@ const paymentMethods = [
 
 export function WalletMain() {
   const { user } = useAuth()
+  const { toast } = useToast()
   const [balance, setBalance] = useState(1247)
   const [ecoPoints, setEcoPoints] = useState(1950)
   const [ecoPerksEarned, setEcoPerksEarned] = useState(97)
@@ -106,51 +112,110 @@ export function WalletMain() {
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("")
   const [redeemAmount, setRedeemAmount] = useState("")
   const [processing, setProcessing] = useState(false)
+  const [currentTransaction, setCurrentTransaction] = useState<any>(null)
+  const [paymentSuccess, setPaymentSuccess] = useState(false)
+  const [paymentError, setPaymentError] = useState<string | null>(null)
 
   const handleAddMoney = async () => {
-    if (!addMoneyAmount || !selectedPaymentMethod) {
-      alert("Please enter amount and select payment method")
+    if (!addMoneyAmount) {
+      toast({
+        title: "Error",
+        description: "Please enter amount",
+        variant: "destructive",
+      })
       return
     }
 
     const amount = parseFloat(addMoneyAmount)
-    if (amount <= 0 || amount > 10000) {
-      alert("Amount must be between ₹1 and ₹10,000")
+    if (amount < PAYMENT_CONFIG.limits.minAmount || amount > PAYMENT_CONFIG.limits.maxAmount) {
+      toast({
+        title: "Invalid Amount",
+        description: `Amount must be between ₹${PAYMENT_CONFIG.limits.minAmount} and ₹${PAYMENT_CONFIG.limits.maxAmount}`,
+        variant: "destructive",
+      })
       return
     }
 
     setProcessing(true)
 
     try {
-      // Simulate payment processing
-      await new Promise(resolve => setTimeout(resolve, 2000))
+      // Create payment order
+      const response = await fetch('/api/wallet/create-payment', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          amount,
+          paymentMethod: selectedPaymentMethod || 'upi',
+          userId: user?.id,
+        }),
+      })
 
-      // Update wallet balance
-      setBalance(prev => prev + amount)
-
-      // Add transaction
-      const newTransaction = {
-        id: `TXN-${Date.now()}`,
-        type: "topup",
-        description: "Wallet Top-up",
-        amount: amount,
-        date: new Date().toLocaleDateString(),
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        status: "completed",
-        paymentMethod: selectedPaymentMethod,
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Failed to create payment')
       }
 
-      recentTransactions.unshift(newTransaction)
-
-      alert(`₹${amount} added to wallet successfully!`)
+      const result = await response.json()
+      setCurrentTransaction(result.transaction)
       setShowAddMoney(false)
-      setAddMoneyAmount("")
-      setSelectedPaymentMethod("")
-    } catch (error) {
-      alert("Payment failed. Please try again.")
+
+      toast({
+        title: "Payment Created",
+        description: "Choose your payment method to complete the transaction",
+      })
+
+    } catch (error: any) {
+      console.error('Payment creation failed:', error)
+      toast({
+        title: "Payment Failed",
+        description: error.message || "Failed to create payment. Please try again.",
+        variant: "destructive",
+      })
     } finally {
       setProcessing(false)
     }
+  }
+
+  const handlePaymentSuccess = (result: any) => {
+    setPaymentSuccess(true)
+    setCurrentTransaction(null)
+    
+    // Update wallet balance
+    if (result.amount) {
+      setBalance(prev => prev + result.amount)
+    }
+
+    toast({
+      title: "Payment Successful!",
+      description: `₹${result.amount} added to your wallet`,
+    })
+
+    // Add transaction to list
+    const newTransaction = {
+      id: result.transactionId || `TXN-${Date.now()}`,
+      type: "topup",
+      description: "Wallet Top-up",
+      amount: result.amount,
+      date: new Date().toLocaleDateString(),
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      status: "completed",
+      paymentMethod: selectedPaymentMethod,
+    }
+
+    recentTransactions.unshift(newTransaction)
+  }
+
+  const handlePaymentError = (error: any) => {
+    setPaymentError(error.message || 'Payment failed')
+    setCurrentTransaction(null)
+    
+    toast({
+      title: "Payment Failed",
+      description: error.message || "Payment failed. Please try again.",
+      variant: "destructive",
+    })
   }
 
   const handleRedeemPoints = async () => {
@@ -254,7 +319,7 @@ export function WalletMain() {
 
             {/* Add Money Modal */}
             <Dialog open={showAddMoney} onOpenChange={setShowAddMoney}>
-              <DialogContent>
+              <DialogContent className="sm:max-w-md">
                 <DialogHeader>
                   <DialogTitle>Add Money to Wallet</DialogTitle>
                 </DialogHeader>
@@ -266,38 +331,27 @@ export function WalletMain() {
                       placeholder="Enter amount"
                       value={addMoneyAmount}
                       onChange={(e) => setAddMoneyAmount(e.target.value)}
-                      min="1"
-                      max="10000"
+                      min={PAYMENT_CONFIG.limits.minAmount}
+                      max={PAYMENT_CONFIG.limits.maxAmount}
                     />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Min: ₹{PAYMENT_CONFIG.limits.minAmount} • Max: ₹{PAYMENT_CONFIG.limits.maxAmount}
+                    </p>
                   </div>
-                  <div>
-                    <label className="text-sm font-medium">Payment Method</label>
-                    <Select value={selectedPaymentMethod} onValueChange={setSelectedPaymentMethod}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select payment method" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {paymentMethods.map((method) => (
-                          <SelectItem key={method.id} value={method.name}>
-                            {method.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  
                   <div className="flex gap-2">
                     <Button 
                       onClick={handleAddMoney} 
-                      disabled={processing || !addMoneyAmount || !selectedPaymentMethod}
+                      disabled={processing || !addMoneyAmount}
                       className="flex-1"
                     >
                       {processing ? (
                         <div className="flex items-center gap-2">
                           <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                          Processing...
+                          Creating Payment...
                         </div>
                       ) : (
-                        "Add Money"
+                        "Continue to Payment"
                       )}
                     </Button>
                     <Button variant="outline" onClick={() => setShowAddMoney(false)}>
@@ -305,6 +359,68 @@ export function WalletMain() {
                     </Button>
                   </div>
                 </div>
+              </DialogContent>
+            </Dialog>
+
+            {/* Payment Method Selection Modal */}
+            <Dialog open={!!currentTransaction} onOpenChange={() => setCurrentTransaction(null)}>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Choose Payment Method</DialogTitle>
+                </DialogHeader>
+                {currentTransaction && (
+                  <div className="space-y-4">
+                    {/* Amount Display */}
+                    <div className="text-center p-4 bg-muted rounded-lg">
+                      <div className="text-2xl font-bold">₹{currentTransaction.amount}</div>
+                      <div className="text-sm text-muted-foreground">EcoRide Wallet Top-up</div>
+                      {currentTransaction.fees && (
+                        <div className="text-xs text-muted-foreground mt-2">
+                          <div>Base Amount: ₹{currentTransaction.amount}</div>
+                          <div>Processing Fee: ₹{currentTransaction.fees.processingFee.toFixed(2)}</div>
+                          <div>GST: ₹{currentTransaction.fees.gst.toFixed(2)}</div>
+                          <div>Convenience Fee: ₹{currentTransaction.fees.convenienceFee.toFixed(2)}</div>
+                          <div className="font-semibold mt-1">Total: ₹{currentTransaction.totalAmount.toFixed(2)}</div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Payment Methods */}
+                    <div className="space-y-3">
+                      <GooglePayButton
+                        amount={currentTransaction.totalAmount}
+                        transactionId={currentTransaction.id}
+                        onSuccess={handlePaymentSuccess}
+                        onError={handlePaymentError}
+                      />
+                      
+                      <UPIPaymentButton
+                        amount={currentTransaction.totalAmount}
+                        transactionId={currentTransaction.id}
+                        onSuccess={handlePaymentSuccess}
+                        onError={handlePaymentError}
+                      />
+
+                      <Button
+                        variant="outline"
+                        className="w-full"
+                        onClick={() => {
+                          // Handle card payment
+                          window.open(`/api/wallet/card-payment?txn=${currentTransaction.id}`, '_blank')
+                        }}
+                      >
+                        <div className="flex items-center gap-2">
+                          <CreditCard className="w-5 h-5" />
+                          Pay with Card
+                        </div>
+                      </Button>
+                    </div>
+
+                    <div className="text-xs text-muted-foreground text-center">
+                      Secure payments powered by industry-standard encryption
+                    </div>
+                  </div>
+                )}
               </DialogContent>
             </Dialog>
 

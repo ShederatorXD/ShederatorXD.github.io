@@ -1,3 +1,5 @@
+import { getCodebaseContextString } from '@/lib/codebase-context'
+
 export const runtime = 'edge'
 
 type ChatMessage = { role: 'user' | 'model' | 'system'; content: string }
@@ -28,19 +30,33 @@ export async function POST(req: Request) {
       .filter((m) => m && typeof m.content === 'string' && (m.role === 'user' || m.role === 'model'))
       .slice(-12)
 
-    const projectContext = `Project: EcoRide — a sustainable ride-sharing dashboard app.
-Key areas/pages: Dashboard, Book Ride, My Rides, EcoPoints, Impact, Wallet, Community, Support, Profile, Admin.
-General guidance: Help users accomplish tasks within these pages. If needed, explain where in the UI to click.
-Tech: Next.js App Router, Shadcn UI components, Supabase client in lib/supabase.ts.`
+    const projectContext = getCodebaseContextString()
 
     const extraContext = (process.env.PROJECT_CONTEXT_EXTRA || '').trim()
 
-    const systemPreamble = `You are EcoBot, a helpful, knowledgeable, and concise AI assistant.
-You can answer general questions across a wide range of topics (science, code, math, history, travel, troubleshooting, etc.) and also help with app-specific questions.
-Be clear, correct, and cite assumptions. If something is unknown or unsafe, say so briefly.
-Prefer short, readable answers; use steps or bullets when helpful; include small examples only when they aid clarity.
+    const systemPreamble = `You are EcoBot, a comprehensive AI assistant for the EcoRide sustainable transportation platform.
 
-App context to ground your answers:
+Your capabilities:
+1. Answer questions about the EcoRide application, its features, and how to use them
+2. Provide technical guidance about the codebase, architecture, and implementation
+3. Help with development questions, debugging, and best practices
+4. Assist with user support, troubleshooting, and feature explanations
+5. Answer general questions across various topics (science, technology, sustainability, etc.)
+
+When answering questions about the EcoRide project:
+- Reference specific files, components, or API endpoints when relevant
+- Explain how features work and where to find them in the UI
+- Provide code examples when helpful for development questions
+- Suggest best practices based on the project's architecture
+- Be specific about the technology stack and implementation details
+
+When answering general questions:
+- Be clear, accurate, and concise
+- Cite assumptions when making them
+- Use steps or bullet points when helpful
+- Include examples only when they aid clarity
+
+Comprehensive project context:
 ${projectContext}${extraContext ? `\nAdditional context: ${extraContext}` : ''}`
 
     const contents = [
@@ -103,22 +119,50 @@ ${projectContext}${extraContext ? `\nAdditional context: ${extraContext}` : ''}`
 
 function generateLocalFallback(message: string): string {
   const lower = (message || '').toLowerCase()
+  
+  // App-specific questions
   if (lower.includes('ride') || lower.includes('book')) {
-    return 'To book a ride: Go to Dashboard > Book Ride. Choose vehicle, set pickup and drop-off, then confirm. Need help scheduling? Open Dashboard > Book Ride and use the Schedule option.'
+    return 'To book a ride: Go to Dashboard > Book Ride. Choose vehicle (EV shuttle, e-bike, ride-sharing), set pickup and drop-off locations, then confirm. You can also schedule rides in advance. The system calculates CO₂ savings and awards EcoPoints for sustainable choices.'
   }
   if (lower.includes('point') || lower.includes('ecopoint') || lower.includes('reward')) {
-    return 'EcoPoints are earned from completed rides and challenges. Check balance in Dashboard > EcoPoints. Redeem from the Wallet page under Rewards.'
+    return 'EcoPoints are earned from sustainable transportation choices. Check your balance in Dashboard > EcoPoints. Points can be redeemed for rewards in the Wallet section. You also earn badges for achievements and milestones.'
   }
   if (lower.includes('impact') || lower.includes('co2') || lower.includes('carbon')) {
-    return 'Your CO₂ savings are shown in Dashboard > Impact. The impact chart updates after each eco-friendly ride.'
+    return 'Your environmental impact is tracked in Dashboard > Impact. The system calculates CO₂ savings for each ride and shows your cumulative impact over time. View charts and statistics to see your contribution to sustainability.'
   }
   if (lower.includes('help') || lower.includes('support') || lower.includes('contact')) {
-    return 'For help, open Dashboard > Support to browse FAQs or create a ticket. Urgent issues? Use Live Chat on the Support page.'
+    return 'For help, open Dashboard > Support. Browse the FAQ section or create a support ticket. Use the EcoBot chat for instant assistance. Admins can manage tickets in the Admin dashboard.'
   }
   if (lower.includes('wallet') || lower.includes('payment') || lower.includes('card')) {
-    return 'Manage payment methods in Dashboard > Wallet. You can add cards, view history, and redeem rewards there.'
+    return 'Manage payments in Dashboard > Wallet. Add payment methods, view transaction history, and redeem EcoPoints for rewards. The wallet integrates with the reward system for seamless point redemption.'
   }
-  return 'Hi! Ask me about booking rides, EcoPoints, your impact, wallet, or app help.'
+  if (lower.includes('community') || lower.includes('post') || lower.includes('social')) {
+    return 'Connect with other users in Dashboard > Community. Share posts, comment on others\' content, and participate in community challenges. Earn badges and recognition for your contributions.'
+  }
+  if (lower.includes('profile') || lower.includes('account') || lower.includes('settings')) {
+    return 'Manage your account in Dashboard > Profile. Update personal information, avatar, preferences, and view your achievements. You can also see your ride history and impact statistics here.'
+  }
+  if (lower.includes('admin') || lower.includes('management')) {
+    return 'Admin features are available in Dashboard > Admin (admin users only). Manage users, support tickets, system analytics, and perform maintenance tasks. Use the purge function carefully as it permanently deletes data.'
+  }
+  
+  // Technical questions
+  if (lower.includes('code') || lower.includes('develop') || lower.includes('tech')) {
+    return 'EcoRide is built with Next.js 15, React 18, TypeScript, Tailwind CSS, and Supabase. The codebase includes comprehensive API endpoints, database schema with RLS policies, and modern UI components. Check the project structure in /app, /components, and /lib directories.'
+  }
+  if (lower.includes('database') || lower.includes('schema') || lower.includes('table')) {
+    return 'The database uses PostgreSQL via Supabase with tables for profiles, rides, support_tickets, community_posts, impact_logs, rewards, and more. RLS policies ensure data security, and auto-cleanup functions maintain performance.'
+  }
+  if (lower.includes('api') || lower.includes('endpoint')) {
+    return 'API endpoints are organized in /app/api with routes for authentication, support tickets, ride management, community features, and admin functions. All endpoints use proper authentication and error handling.'
+  }
+  
+  // General questions
+  if (lower.includes('sustainable') || lower.includes('eco') || lower.includes('green')) {
+    return 'EcoRide promotes sustainable transportation by encouraging EV shuttles, e-bikes, ride-sharing, and walking. The app tracks CO₂ savings and rewards users with EcoPoints for making green choices. Every sustainable ride contributes to environmental impact reduction.'
+  }
+  
+  return 'Hi! I\'m EcoBot, your AI assistant for EcoRide. I can help with app features, technical questions, development guidance, and general topics. Ask me about booking rides, EcoPoints, impact tracking, support, or any aspect of the EcoRide platform!'
 }
 
 

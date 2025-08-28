@@ -108,6 +108,18 @@ export async function POST(request: NextRequest) {
         console.log('Rewards deleted successfully')
       }
       
+      // Delete all support tickets
+      const { error: ticketsError } = await supabase
+        .from('support_tickets')
+        .delete()
+        .neq('id', 0) // Add WHERE clause to satisfy RLS - delete all tickets
+      
+      if (ticketsError) {
+        console.error('Error deleting support tickets:', ticketsError)
+      } else {
+        console.log('Support tickets deleted successfully')
+      }
+      
       const { error: prefsError } = await supabase
         .from('user_preferences')
         .delete()

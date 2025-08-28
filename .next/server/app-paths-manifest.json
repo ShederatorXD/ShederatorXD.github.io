@@ -1,8 +1,1 @@
-{
-  "/page": "app/page.js",
-  "/dashboard/page": "app/dashboard/page.js",
-  "/dashboard/book-ride/page": "app/dashboard/book-ride/page.js",
-  "/dashboard/community/page": "app/dashboard/community/page.js",
-  "/dashboard/support/page": "app/dashboard/support/page.js",
-  "/dashboard/admin/page": "app/dashboard/admin/page.js"
-}
+{}
