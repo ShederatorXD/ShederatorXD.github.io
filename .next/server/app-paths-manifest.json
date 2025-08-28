@@ -1,8 +1,8 @@
 {
+  "/page": "app/page.js",
   "/dashboard/page": "app/dashboard/page.js",
   "/dashboard/book-ride/page": "app/dashboard/book-ride/page.js",
-  "/dashboard/ecopoints/page": "app/dashboard/ecopoints/page.js",
-  "/dashboard/admin/page": "app/dashboard/admin/page.js",
-  "/dashboard/my-rides/page": "app/dashboard/my-rides/page.js",
-  "/dashboard/wallet/page": "app/dashboard/wallet/page.js"
+  "/dashboard/community/page": "app/dashboard/community/page.js",
+  "/dashboard/support/page": "app/dashboard/support/page.js",
+  "/dashboard/admin/page": "app/dashboard/admin/page.js"
 }

@@ -21,25 +21,20 @@
       "static/chunks/main-app.js",
       "static/chunks/app/dashboard/book-ride/page.js"
     ],
-    "/dashboard/my-rides/page": [
+    "/dashboard/community/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/dashboard/my-rides/page.js"
+      "static/chunks/app/dashboard/community/page.js"
     ],
     "/dashboard/admin/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/dashboard/admin/page.js"
     ],
-    "/dashboard/ecopoints/page": [
+    "/dashboard/support/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/dashboard/ecopoints/page.js"
-    ],
-    "/dashboard/wallet/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/dashboard/wallet/page.js"
+      "static/chunks/app/dashboard/support/page.js"
     ]
   }
 }
