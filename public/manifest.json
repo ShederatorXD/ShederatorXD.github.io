@@ -1,0 +1,16 @@
+{
+  "name": "EcoRide",
+  "short_name": "EcoRide",
+  "description": "Sustainable Transportation Platform",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#10b981",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

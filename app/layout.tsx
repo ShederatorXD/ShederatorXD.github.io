@@ -7,9 +7,15 @@ import { AuthProvider } from "@/components/AuthProvider"
 import { EcoBot } from "@/components/EcoBot"
 
 export const metadata: Metadata = {
-  title: "v0 App",
-  description: "Created with v0",
-  generator: "v0.app",
+  title: "EcoRide - Sustainable Transportation",
+  description: "Join EcoRide and start earning EcoPoints while contributing to a greener future through sustainable transportation.",
+  generator: "EcoRide",
+  icons: {
+    icon: '/favicon.svg',
+    shortcut: '/favicon.svg',
+    apple: '/favicon.svg',
+  },
+  manifest: '/manifest.json',
 }
 
 export default function RootLayout({

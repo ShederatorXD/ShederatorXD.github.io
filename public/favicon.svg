@@ -1,0 +1,16 @@
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle -->
+  <circle cx="16" cy="16" r="15" fill="#10b981" stroke="#059669" stroke-width="2"/>
+  
+  <!-- Bicycle wheel -->
+  <circle cx="16" cy="16" r="8" fill="none" stroke="white" stroke-width="2"/>
+  <circle cx="16" cy="16" r="3" fill="white"/>
+  
+  <!-- Bicycle frame -->
+  <path d="M8 20 L12 16 L20 16 L24 20" stroke="white" stroke-width="2" fill="none"/>
+  <path d="M12 16 L16 12" stroke="white" stroke-width="2" fill="none"/>
+  
+  <!-- Leaf -->
+  <path d="M20 8 Q22 6 24 8 Q22 10 20 8" fill="#34d399"/>
+  <path d="M22 6 Q24 4 26 6 Q24 8 22 6" fill="#6ee7b7"/>
+</svg>
