@@ -40,7 +40,13 @@ export function UPIPaymentButton({
     setIsLoading(true)
 
     try {
-      // Create UPI payment intent
+      // If Razorpay is configured, use Checkout (supports UPI) for a real payment flow
+      if (typeof window !== 'undefined' && (PAYMENT_CONFIG as any)?.gateway?.apiKey) {
+        window.location.href = `/api/wallet/card-payment?txn=${transactionId}`
+        return
+      }
+
+      // Create UPI payment intent (fallback demo flow)
       const response = await fetch('/api/wallet/create-upi-payment', {
         method: 'POST',
         headers: {

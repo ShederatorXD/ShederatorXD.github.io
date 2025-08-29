@@ -130,14 +130,24 @@ export function GooglePayButton({
           merchantId: PAYMENT_CONFIG.googlePay.merchantId,
           merchantName: PAYMENT_CONFIG.googlePay.merchantName,
         },
-        callbackIntents: ['PAYMENT_AUTHORIZATION'],
+        paymentDataCallbacks: {
+          onPaymentAuthorized: async (paymentData: any) => {
+            try {
+              const result = await processGooglePayPayment(paymentData)
+              onSuccess(result)
+              return { transactionState: 'SUCCESS' }
+            } catch (e: any) {
+              onError(e)
+              return {
+                transactionState: 'ERROR',
+                error: { intent: 'PAYMENT_AUTHORIZATION', message: e?.message || 'Authorization failed' }
+              }
+            }
+          }
+        }
       }
 
-      const paymentData = await paymentsClient.loadPaymentData(paymentDataRequest)
-
-      // Process the payment
-      const result = await processGooglePayPayment(paymentData)
-      onSuccess(result)
+      await paymentsClient.loadPaymentData(paymentDataRequest)
 
     } catch (error: any) {
       console.error('Google Pay payment failed:', error)

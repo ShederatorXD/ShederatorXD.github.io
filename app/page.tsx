@@ -118,7 +118,7 @@ export default function LandingPage() {
 
           <div className="grid md:grid-cols-3 gap-8">
             {/* AI Ride Optimization */}
-            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300 card-lift">
+            <Card className="border-0 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
               <CardHeader className="text-center pb-4">
                 <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4 map-pulse">
                   <Zap className="w-8 h-8 text-primary" />
@@ -134,7 +134,7 @@ export default function LandingPage() {
             </Card>
 
             {/* Clean Energy Transport */}
-            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300 card-lift">
+            <Card className="border-0 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
               <CardHeader className="text-center pb-4">
                 <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4 map-pulse">
                   <Leaf className="w-8 h-8 text-primary" />
@@ -150,7 +150,7 @@ export default function LandingPage() {
             </Card>
 
             {/* EcoPoints & Rewards */}
-            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300 card-lift">
+            <Card className="border-0 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
               <CardHeader className="text-center pb-4">
                 <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4 map-pulse">
                   <Coins className="w-8 h-8 text-primary" />

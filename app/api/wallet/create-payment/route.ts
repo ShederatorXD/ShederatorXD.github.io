@@ -19,18 +19,31 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
+    // Validate required env vars
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      console.error('Missing Supabase env vars: NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY')
+      return NextResponse.json({ error: 'Server configuration error. Please set Supabase environment variables.' }, { status: 500 })
+    }
+
     // Initialize Supabase client
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     )
 
-    // Create transaction record
+    // Calculate fees BEFORE insert (total_amount is NOT NULL in schema)
+    const processingFee = numAmount * PAYMENT_CONFIG.fees.processingFee
+    const gst = (numAmount + processingFee) * PAYMENT_CONFIG.fees.gst
+    const convenienceFee = numAmount * PAYMENT_CONFIG.fees.convenienceFee
+    const totalAmount = numAmount + processingFee + gst + convenienceFee
+
+    // Create transaction record with total_amount
     const { data: transaction, error: transactionError } = await supabase
       .from('wallet_transactions')
       .insert({
         user_id: userId,
         amount: numAmount,
+        total_amount: totalAmount,
         payment_method: paymentMethod,
         status: TRANSACTION_STATUS.PENDING,
         type: TRANSACTION_TYPES.TOPUP,
@@ -44,18 +57,10 @@ export async function POST(request: NextRequest) {
       .select()
       .single()
 
-    if (transactionError) {
+    if (transactionError || !transaction) {
       console.error('Error creating transaction:', transactionError)
-      return NextResponse.json({ 
-        error: 'Failed to create transaction' 
-      }, { status: 500 })
+      return NextResponse.json({ error: transactionError?.message || 'Failed to create transaction' }, { status: 500 })
     }
-
-    // Calculate fees
-    const processingFee = numAmount * PAYMENT_CONFIG.fees.processingFee
-    const gst = (numAmount + processingFee) * PAYMENT_CONFIG.fees.gst
-    const convenienceFee = numAmount * PAYMENT_CONFIG.fees.convenienceFee
-    const totalAmount = numAmount + processingFee + gst + convenienceFee
 
     // Create payment order based on method
     let paymentOrder = null

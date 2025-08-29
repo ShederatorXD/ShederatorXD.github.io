@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Car, Leaf, Coins, MapPin, Navigation, Clock, TrendingUp } from "lucide-react"
 import { LiveMap } from "@/components/LiveMap"
 import { useAuth } from "@/components/AuthProvider"
-import { useUserValidation } from "@/hooks/use-user-validation"
+
 import { useEffect, useState } from "react"
 import { supabase } from "@/lib/supabase"
 import Link from "next/link"

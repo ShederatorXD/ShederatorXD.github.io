@@ -14,7 +14,7 @@ import { useAuth } from "@/components/AuthProvider"
 import { GooglePayButton } from "@/components/google-pay-button"
 import { UPIPaymentButton } from "@/components/upi-payment-button"
 import { PAYMENT_METHODS, PAYMENT_CONFIG } from "@/lib/payment-config"
-import { useToast } from "@/hooks/use-toast"
+import { useToast } from "@/components/ui/use-toast"
 
 const recentTransactions = [
   {
@@ -117,6 +117,15 @@ export function WalletMain() {
   const [paymentError, setPaymentError] = useState<string | null>(null)
 
   const handleAddMoney = async () => {
+    if (!user?.id) {
+      toast({
+        title: "Sign in required",
+        description: "Please log in to add money to your wallet.",
+        variant: "destructive",
+      })
+      return
+    }
+
     if (!addMoneyAmount) {
       toast({
         title: "Error",
@@ -147,14 +156,18 @@ export function WalletMain() {
         },
         body: JSON.stringify({
           amount,
-          paymentMethod: selectedPaymentMethod || 'upi',
+          paymentMethod: selectedPaymentMethod || 'card',
           userId: user?.id,
         }),
       })
 
       if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.error || 'Failed to create payment')
+        let message = 'Failed to create payment'
+        try {
+          const error = await response.json()
+          message = error?.error || message
+        } catch {}
+        throw new Error(message)
       }
 
       const result = await response.json()
@@ -405,8 +418,8 @@ export function WalletMain() {
                         variant="outline"
                         className="w-full"
                         onClick={() => {
-                          // Handle card payment
-                          window.open(`/api/wallet/card-payment?txn=${currentTransaction.id}`, '_blank')
+                          // Handle card payment in same tab (avoids popup blockers)
+                          window.location.href = `/api/wallet/card-payment?txn=${currentTransaction.id}`
                         }}
                       >
                         <div className="flex items-center gap-2">

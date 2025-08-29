@@ -414,7 +414,7 @@ export function BookRideMain() {
         </div>
 
         <div className="max-w-2xl mx-auto">
-          <Card className="border-0 shadow-md animate-card-lift hover:shadow-lg transition-all duration-300">
+          <Card className="border-0 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <selectedRide.icon className="w-5 h-5 animate-icon-bounce" />
@@ -492,7 +492,7 @@ export function BookRideMain() {
         </div>
 
         <div className="max-w-4xl mx-auto">
-          <Card className="border-0 shadow-md mb-6 animate-card-lift hover:shadow-lg transition-all duration-300">
+          <Card className="border-0 shadow-md mb-6 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
             <CardHeader>
               <CardTitle>Your Journey</CardTitle>
             </CardHeader>
@@ -515,7 +515,7 @@ export function BookRideMain() {
             {(calculatedRides.length > 0 ? calculatedRides : aiSuggestions).map((suggestion, index) => (
               <Card
                 key={suggestion.id}
-                className="border-0 shadow-md hover:shadow-lg transition-all duration-300 animate-card-lift animate-slide-in-up"
+                className="border-0 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1 animate-card-lift animate-slide-in-up"
                 style={{ animationDelay: `${index * 100}ms` }}
               >
                 <CardContent className="p-6">
@@ -600,7 +600,7 @@ export function BookRideMain() {
 
       <div className="max-w-2xl mx-auto space-y-6">
         {/* Map */}
-        <Card className="border-0 shadow-md animate-card-lift hover:shadow-lg transition-all duration-300">
+        <Card className="border-0 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
           <CardHeader>
             <CardTitle>Map</CardTitle>
             <CardDescription>Drop pins for pickup and dropoff</CardDescription>
@@ -618,7 +618,7 @@ export function BookRideMain() {
         </Card>
 
         {/* Booking Form */}
-        <Card className="border-0 shadow-md animate-card-lift hover:shadow-lg transition-all duration-300">
+        <Card className="border-0 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
           <CardHeader>
             <CardTitle>Where would you like to go?</CardTitle>
             <CardDescription>Enter your pickup and destination locations</CardDescription>

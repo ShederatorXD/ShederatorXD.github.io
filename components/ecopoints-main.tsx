@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
-import { Coins, Gift, Star, Trophy, Leaf, Car, Coffee, ShoppingBag, Zap, Target } from "lucide-react"
+import { Coins, Gift, Star, Trophy, Leaf, Car, Coffee, ShoppingBag, Zap, Target, BarChart3, HelpCircle } from "lucide-react"
 import { useAuth } from "@/components/AuthProvider"
 import { supabase } from "@/lib/supabase"
 
@@ -13,10 +13,14 @@ type HistoryItem = { id: string; action: string; points: number; date: string; t
 
 type RewardRow = { id: string; title: string; description: string | null; points: number; category: string | null }
 const ICON_META: Record<string, any> = {
-  "Food & Drink": Coffee,
+  "Food & Beverage": Coffee,
   Transport: Car,
   Shopping: ShoppingBag,
   Premium: Star,
+  Recognition: Trophy,
+  Insights: BarChart3,
+  Environment: Leaf,
+  Support: HelpCircle,
 }
 
 export function EcoPointsMain() {
@@ -47,19 +51,35 @@ export function EcoPointsMain() {
       }))
       setHistory(mapped)
 
-      // load rewards from DB (fallback to defaults if table empty)
-      const { data: rw } = await supabase
-        .from('rewards')
-        .select('id, title, description, points, category')
-        .order('points', { ascending: true })
-      if (rw && rw.length > 0) {
-        setRewards(rw as any)
-      } else {
+      // load rewards from DB (fallback to defaults if table empty or error)
+      try {
+        const { data: rw, error: rewardsError } = await supabase
+          .from('rewards')
+          .select('id, title, description, points, category')
+          .order('points', { ascending: true })
+        
+        if (rewardsError) {
+          console.error('Error loading rewards:', rewardsError)
+          // Fall back to default rewards
+        } else if (rw && rw.length > 0) {
+          setRewards(rw as any)
+        } else {
+          // Table is empty, use default rewards
+          console.log('No rewards found in database, using defaults')
+        }
+      } catch (error) {
+        console.error('Failed to load rewards:', error)
+      }
+      
+      // Always set default rewards as fallback
+      if (rewards.length === 0) {
         setRewards([
-          { id: '1', title: 'Free Coffee', description: 'Redeem at partner cafes', points: 200, category: 'Food & Drink' },
-          { id: '2', title: '10% Ride Discount', description: 'Valid for next 5 rides', points: 500, category: 'Transport' },
-          { id: '3', title: 'Eco Shopping Voucher', description: '$10 sustainable products', points: 800, category: 'Shopping' },
-          { id: '4', title: 'Premium Features', description: '1 month access', points: 1200, category: 'Premium' },
+          { id: '1', title: 'Free Coffee at CCD', description: 'Enjoy a free coffee at any CCD outlet', points: 200, category: 'Food & Beverage' },
+          { id: '2', title: '₹50 Ride Discount', description: 'Get ₹50 off your next ride', points: 500, category: 'Transport' },
+          { id: '3', title: 'Eco Shopping Voucher', description: '₹100 voucher for sustainable products', points: 800, category: 'Shopping' },
+          { id: '4', title: 'Premium Features Access', description: '1 month access to premium features', points: 1200, category: 'Premium' },
+          { id: '5', title: 'Community Badge', description: 'Special badge for your profile', points: 300, category: 'Recognition' },
+          { id: '6', title: 'Weekly Impact Report', description: 'Detailed weekly environmental impact report', points: 400, category: 'Insights' },
         ])
       }
     }
@@ -85,11 +105,24 @@ export function EcoPointsMain() {
       const newPoints = currentPoints - reward.points
       const { error: updErr } = await supabase.from('profiles').update({ eco_points: newPoints }).eq('id', user.id)
       if (updErr) throw updErr
-      await supabase.from('reward_redemptions').insert({ user_id: user.id, reward_id: reward.id, title: reward.title, points_spent: reward.points })
+      
+      // Insert redemption record (without title since it's not in the current schema)
+      const { error: redemptionErr } = await supabase.from('reward_redemptions').insert({ 
+        user_id: user.id, 
+        reward_id: reward.id, 
+        points_spent: reward.points 
+      })
+      
+      if (redemptionErr) {
+        console.error('Redemption insert error:', redemptionErr)
+        // Continue with points update even if redemption logging fails
+      }
+      
       setCurrentPoints(newPoints)
       await refreshUserData()
       alert(`Redeemed ${reward.title}!`)
     } catch (e) {
+      console.error('Redemption error:', e)
       alert('Could not redeem at this time.')
     } finally {
       setRedeemingId(null)

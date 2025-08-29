@@ -1,4 +1,6 @@
 {
+  "/api/wallet/create-payment/route": "app/api/wallet/create-payment/route.js",
   "/page": "app/page.js",
+  "/dashboard/wallet/page": "app/dashboard/wallet/page.js",
   "/dashboard/page": "app/dashboard/page.js"
 }

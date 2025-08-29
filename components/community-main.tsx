@@ -1098,6 +1098,7 @@ export function CommunityMain() {
                   <div className="text-center">
                     <div className="text-2xl font-bold text-primary">{totalUsers.toLocaleString()}</div>
                     <div className="text-sm text-muted-foreground">Active EcoRiders</div>
+
                   </div>
                   <div className="text-center">
                     <div className="text-2xl font-bold text-green-600">
@@ -1204,3 +1205,4 @@ export function CommunityMain() {
     </div>
   )
 }
+

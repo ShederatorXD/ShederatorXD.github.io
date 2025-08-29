@@ -356,7 +356,12 @@ export function AdminMain() {
 
   const startEditReward = (r: any) => {
     setEditingRewardId(r.id)
-    setEditReward({ title: r.title || '', points: r.points || 0, category: r.category || '', description: r.description || '' })
+    setEditReward({ 
+      title: String(r.title || ''), 
+      points: Number(r.points || 0), 
+      category: String(r.category || ''), 
+      description: String(r.description || '') 
+    })
   }
 
   const saveEditReward = async () => {
@@ -930,10 +935,10 @@ export function AdminMain() {
                       <AccordionTrigger>Create New Reward</AccordionTrigger>
                       <AccordionContent>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-2">
-                          <Input placeholder="Title" value={newReward.title} onChange={(e) => setNewReward(r => ({ ...r, title: e.target.value }))} />
-                          <Input type="number" placeholder="Points" value={newReward.points} onChange={(e) => setNewReward(r => ({ ...r, points: Number(e.target.value || 0) }))} />
-                          <Input placeholder="Category" value={newReward.category} onChange={(e) => setNewReward(r => ({ ...r, category: e.target.value }))} />
-                          <Input placeholder="Description" value={newReward.description} onChange={(e) => setNewReward(r => ({ ...r, description: e.target.value }))} />
+                          <Input placeholder="Title" value={newReward.title || ''} onChange={(e) => setNewReward(r => ({ ...r, title: e.target.value }))} />
+                          <Input type="number" placeholder="Points" value={newReward.points || 0} onChange={(e) => setNewReward(r => ({ ...r, points: Number(e.target.value || 0) }))} />
+                          <Input placeholder="Category" value={newReward.category || ''} onChange={(e) => setNewReward(r => ({ ...r, category: e.target.value }))} />
+                          <Input placeholder="Description" value={newReward.description || ''} onChange={(e) => setNewReward(r => ({ ...r, description: e.target.value }))} />
                         </div>
                         <div className="text-xs text-muted-foreground mb-3">Fill details, then click "Add New" in the header to save.</div>
                       </AccordionContent>
@@ -953,24 +958,24 @@ export function AdminMain() {
                               <div className="flex items-start justify-between mb-2 gap-2">
                                 <div className="flex-1">
                                   {isEditing ? (
-                                    <Input value={editReward.title} onChange={(e) => setEditReward(r => ({ ...r, title: e.target.value }))} />
+                                    <Input value={editReward.title || ''} onChange={(e) => setEditReward(r => ({ ...r, title: e.target.value }))} />
                                   ) : (
                                     <h4 className="font-medium text-sm line-clamp-1">{reward.title}</h4>
                                   )}
                                   <div className="text-xs text-muted-foreground mt-1">
                                     {isEditing ? (
-                                      <Input value={editReward.category} onChange={(e) => setEditReward(r => ({ ...r, category: e.target.value }))} />
+                                      <Input value={editReward.category || ''} onChange={(e) => setEditReward(r => ({ ...r, category: e.target.value }))} />
                                     ) : reward.category}
                                   </div>
                                   <div className="text-xs text-muted-foreground mt-1">
                                     {isEditing ? (
-                                      <Input value={editReward.description} onChange={(e) => setEditReward(r => ({ ...r, description: e.target.value }))} />
+                                      <Input value={editReward.description || ''} onChange={(e) => setEditReward(r => ({ ...r, description: e.target.value }))} />
                                     ) : reward.description}
                                   </div>
                                 </div>
                                 <Badge variant="secondary" className="text-xs whitespace-nowrap self-start">
                                   {isEditing ? (
-                                    <Input type="number" value={editReward.points} onChange={(e) => setEditReward(r => ({ ...r, points: Number(e.target.value || 0) }))} />
+                                    <Input type="number" value={editReward.points || 0} onChange={(e) => setEditReward(r => ({ ...r, points: Number(e.target.value || 0) }))} />
                                   ) : (
                                     `${reward.points} pts`
                                   )}
