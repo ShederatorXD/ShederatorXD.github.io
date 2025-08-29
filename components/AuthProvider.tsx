@@ -34,7 +34,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 	const [user, setUser] = useState<AuthState['user']>(null)
 	const [loading, setLoading] = useState(true)
 
-	// Simple initialization - no aggressive checks
+	// Simple initialization - ensure KIIT domain gets admin role
 	useEffect(() => {
 		const init = async () => {
 			try {
@@ -45,15 +45,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 					setToken(session.access_token)
 					const profile = await fetchProfile(session.user.id)
 					if (profile) {
+						const isKiit = !!session.user.email?.endsWith('@kiit.ac.in')
+						const resolvedRole = isKiit ? 'admin' : (profile.role || 'rider')
 						setUser({
 							id: session.user.id,
 							name: profile.name || session.user.email || 'User',
 							email: session.user.email || '',
 							ecoPoints: profile.eco_points ?? 0,
 							badges: profile.badges ?? [],
-							role: profile.role || 'rider',
+							role: resolvedRole,
 							avatarUrl: profile.avatar_url ?? null,
 						})
+						if (isKiit && profile.role !== 'admin') {
+							await supabase.from('profiles').update({ role: 'admin' }).eq('id', session.user.id)
+						}
 					}
 				}
 			} catch (error) {
@@ -126,22 +131,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 			// Fetch profile
 			const profile = await fetchProfile(session.user.id)
 			if (profile) {
+				const isKiitLogin = !!session.user.email?.endsWith('@kiit.ac.in')
+				const resolvedLoginRole = isKiitLogin ? 'admin' : (profile.role || 'rider')
 				setUser({
 					id: session.user.id,
 					name: profile.name || session.user.email || 'User',
 					email: session.user.email || '',
 					ecoPoints: profile.eco_points ?? 0,
 					badges: profile.badges ?? [],
-					role: profile.role || 'rider',
+					role: resolvedLoginRole,
 					avatarUrl: profile.avatar_url ?? null,
 				})
+				if (isKiitLogin && profile.role !== 'admin') {
+					await supabase.from('profiles').update({ role: 'admin' }).eq('id', session.user.id)
+				}
 			} else {
-				// Create profile if it doesn't exist
+				// Create profile if it doesn't exist (assign admin for KIIT domain)
 				console.log('Profile not found, creating one...')
+				const isKiitLogin = !!session.user.email?.endsWith('@kiit.ac.in')
+				const initialRole = isKiitLogin ? 'admin' : 'rider'
 				const { error: createError } = await supabase.from('profiles').upsert({ 
 					id: session.user.id, 
 					name: session.user.email?.split('@')[0] || 'User', 
-					role: 'rider', 
+					role: initialRole, 
 					eco_points: 0, 
 					badges: [], 
 					phone: null 
@@ -156,7 +168,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 						email: session.user.email || '',
 						ecoPoints: 0,
 						badges: [],
-						role: 'rider',
+						role: initialRole,
 						avatarUrl: null,
 					})
 				}
@@ -190,12 +202,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 			
 			const session = data.session
 			if (data.user?.id) {
-				// Create profile
+				// Create profile (domain-based role)
 				console.log('Creating user profile...')
+				const isKiit = !!email.endsWith('@kiit.ac.in')
+				const initialRole = isKiit ? 'admin' : 'rider'
 				const { error: profileError } = await supabase.from('profiles').upsert({ 
 					id: data.user.id, 
 					name, 
-					role: 'rider', 
+					role: initialRole, 
 					eco_points: 0, 
 					badges: [], 
 					phone 
@@ -212,13 +226,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 				console.log('Setting session data...')
 				localStorage.setItem('token', session.access_token)
 				setToken(session.access_token)
+				const isKiit = !!email.endsWith('@kiit.ac.in')
 				setUser({ 
 					id: session.user.id, 
 					name: name || email, 
 					email, 
 					ecoPoints: 0, 
 					badges: [], 
-					role: 'rider',
+					role: isKiit ? 'admin' : 'rider',
 					avatarUrl: null
 				})
 			}
