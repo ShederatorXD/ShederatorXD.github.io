@@ -130,7 +130,7 @@ export function EcoPointsMain() {
   }
 
   return (
-    <div className="flex-1 p-6 overflow-auto">
+    <div className="flex-1 p-6 overflow-auto bg-gradient-to-br from-slate-50 to-slate-100">
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-foreground mb-2">EcoPoints & Rewards</h1>
@@ -139,7 +139,7 @@ export function EcoPointsMain() {
 
       {/* Points Overview */}
       <div className="grid md:grid-cols-3 gap-6 mb-8">
-        <Card className="border-0 shadow-md bg-gradient-to-br from-primary/5 to-primary/10">
+        <Card className="border-0 shadow-md bg-gradient-to-br from-primary/5 to-primary/10 rounded-2xl hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Coins className="w-5 h-5 text-primary" />
@@ -156,7 +156,7 @@ export function EcoPointsMain() {
           </CardContent>
         </Card>
 
-        <Card className="border-0 shadow-md">
+        <Card className="border-0 shadow-md rounded-2xl hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Target className="w-5 h-5 text-accent" />
@@ -171,7 +171,7 @@ export function EcoPointsMain() {
           </CardContent>
         </Card>
 
-        <Card className="border-0 shadow-md">
+        <Card className="border-0 shadow-md rounded-2xl hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Trophy className="w-5 h-5 text-accent" />
@@ -196,7 +196,7 @@ export function EcoPointsMain() {
       </div>
 
       {/* Available Rewards */}
-      <Card className="border-0 shadow-md mb-6">
+      <Card className="border-0 shadow-md mb-6 rounded-2xl hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Gift className="w-5 h-5 text-primary" />
@@ -247,7 +247,7 @@ export function EcoPointsMain() {
       {/* Main Content Grid */}
       <div className="grid lg:grid-cols-2 gap-6">
         {/* Points History */}
-        <Card className="border-0 shadow-md">
+        <Card className="border-0 shadow-md rounded-2xl hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
           <CardHeader>
             <CardTitle>Recent Earnings</CardTitle>
             <CardDescription>Your latest point-earning activities</CardDescription>
@@ -275,7 +275,7 @@ export function EcoPointsMain() {
         </Card>
 
         {/* How to Earn More */}
-        <Card className="border-0 shadow-md">
+        <Card className="border-0 shadow-md rounded-2xl hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Leaf className="w-5 h-5 text-primary" />
@@ -311,7 +311,7 @@ export function EcoPointsMain() {
       </div>
 
       {/* Current Challenges */}
-      <Card className="border-0 shadow-md mt-6">
+      <Card className="border-0 shadow-md mt-6 rounded-2xl hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
         <CardHeader>
           <CardTitle>Active Challenges</CardTitle>
           <CardDescription>Complete these challenges to earn bonus points</CardDescription>

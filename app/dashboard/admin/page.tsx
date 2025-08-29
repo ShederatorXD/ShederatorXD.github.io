@@ -5,9 +5,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 export default function AdminPage() {
   return (
-    <div className="flex h-screen bg-background">
+    <div className="min-h-screen bg-background flex">
       <DashboardSidebar />
-      <div className="flex-1 overflow-auto">
+      <div className="flex-1 overflow-auto bg-gradient-to-br from-slate-50 to-slate-100">
         <Tabs defaultValue="dashboard" className="h-full">
           <div className="border-b px-6 py-4">
             <TabsList>

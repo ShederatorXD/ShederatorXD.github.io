@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { motion, AnimatePresence } from "framer-motion"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -11,6 +12,8 @@ import { LiveMap } from "@/components/LiveMap"
 import { supabase } from "@/lib/supabase"
 import { useAuth } from "@/components/AuthProvider"
 import { useRouter } from "next/navigation"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 // Haversine distance in km
 function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
@@ -56,6 +59,14 @@ export function BookRideMain() {
   const [bookingLoading, setBookingLoading] = useState(false)
   const { user, refreshUserData } = useAuth()
   const router = useRouter()
+  const [isSearching, setIsSearching] = useState(false)
+  const [sortBy, setSortBy] = useState<string>("cheapest")
+  const [favorites, setFavorites] = useState<Array<{ pickup: string; dropoff: string }>>([])
+  const [bookingRide, setBookingRide] = useState<any>(null)
+  const [walletBalance, setWalletBalance] = useState<number>(0)
+  const [pickupSuggestions, setPickupSuggestions] = useState<Array<{ place_name: string; center: [number, number] }>>([])
+  const [dropSuggestions, setDropSuggestions] = useState<Array<{ place_name: string; center: [number, number] }>>([])
+  const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN
 
   // Handle location input changes
   const handleLocationChange = (field: 'pickup' | 'dropoff', value: string) => {
@@ -68,6 +79,23 @@ export function BookRideMain() {
     if (field === 'dropoff' && coords.dropoff) {
       setCoords(prev => ({ ...prev, dropoff: null }))
     }
+
+    // Autocomplete with Mapbox Places
+    const query = value.trim()
+    if (!mapboxToken || query.length < 3) {
+      if (field === 'pickup') setPickupSuggestions([]); else setDropSuggestions([])
+      return
+    }
+    const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${mapboxToken}&autocomplete=true&limit=5`
+    fetch(url)
+      .then(r => r.json())
+      .then((j) => {
+        const opts = (j?.features || []).map((f: any) => ({ place_name: f.place_name, center: f.center as [number, number] }))
+        if (field === 'pickup') setPickupSuggestions(opts); else setDropSuggestions(opts)
+      })
+      .catch(() => {
+        if (field === 'pickup') setPickupSuggestions([]); else setDropSuggestions([])
+      })
   }
 
   // Handle map coordinate changes
@@ -224,7 +252,11 @@ export function BookRideMain() {
     }
     
     console.log('Finding rides with coordinates:', coords)
-    setStep("suggestions")
+    setIsSearching(true)
+    setTimeout(() => {
+      setIsSearching(false)
+      setStep("suggestions")
+    }, 1000)
   }
 
   const handleSelectRide = (ride: any) => {
@@ -245,6 +277,12 @@ export function BookRideMain() {
 
     setBookingLoading(true)
     try {
+      const withTimeout = async (p: Promise<any>, label: string, ms = 12000) => {
+        return await Promise.race([
+          p,
+          new Promise((_, reject) => setTimeout(() => reject(new Error(`${label} timed out`)), ms)),
+        ])
+      }
       const distanceKm = typeof selectedRide.distanceKm === 'number' ? selectedRide.distanceKm : 0
       const co2SavedKg = typeof selectedRide.co2Saved === 'string' ? parseFloat(String(selectedRide.co2Saved).replace(/[^0-9.]/g, '')) : (selectedRide.co2Saved || 0)
       const price = typeof selectedRide.price === 'string' ? parseFloat(String(selectedRide.price).replace(/[^0-9]/g, ''), 10) : (selectedRide.price || 0)
@@ -267,7 +305,8 @@ export function BookRideMain() {
       })
 
       // 1) Save ride record to rides table
-      const { data: rideData, error: rideErr } = await supabase.from('rides').insert({
+      const { data: rideData, error: rideErr } = await withTimeout(
+        supabase.from('rides').insert({
         user_id: user.id,
         pickup_address: formData.pickup,
         dropoff_address: formData.dropoff,
@@ -280,7 +319,9 @@ export function BookRideMain() {
         duration_min: durationMin,
         co2_saved_kg: co2SavedKg,
         mode: transportType
-      }).select()
+      }).select(),
+        'Saving ride'
+      ) as any
 
       if (rideErr) {
         console.error('Ride insert error:', rideErr)
@@ -294,13 +335,16 @@ export function BookRideMain() {
       const points = Math.round(co2SavedKg * 20)
       
       try {
-        const { error: impactErr } = await supabase.from('impact_logs').insert({
+        const { error: impactErr } = await withTimeout(
+          supabase.from('impact_logs').insert({
           user_id: user.id,
           co2_saved_kg: co2SavedKg,
           points_earned: points,
           mode: transportType,
           distance_km: distanceKm
-        })
+        }),
+          'Logging impact'
+        ) as any
         
         if (impactErr) {
           console.error('Impact insert error:', impactErr)
@@ -315,21 +359,27 @@ export function BookRideMain() {
 
       // 3) Update user's EcoPoints in profiles table
       try {
-        const { error: profileErr } = await supabase
+        const { error: profileErr } = await withTimeout(
+          supabase
           .from('profiles')
           .update({ 
             eco_points: (user.ecoPoints || 0) + points
           })
-          .eq('id', user.id)
+          .eq('id', user.id),
+          'Updating profile'
+        ) as any
 
         if (profileErr) {
           console.error('Profile update error:', profileErr)
           // Try alternative method
           try {
-            const { error: rpcError } = await supabase.rpc('increment_ecopoints', { 
+            const { error: rpcError } = await withTimeout(
+              supabase.rpc('increment_ecopoints', { 
               uid: user.id, 
               amount: points 
-            })
+            }),
+              'Incrementing points'
+            ) as any
             if (rpcError) {
               console.error('RPC increment error:', rpcError)
             }
@@ -403,11 +453,22 @@ export function BookRideMain() {
     if (user?.id) {
       validateDatabase()
     }
+    try {
+      const saved = localStorage.getItem('ride_favorites')
+      if (saved) setFavorites(JSON.parse(saved))
+    } catch {}
+    ;(async () => {
+      if (!user?.id) return
+      try {
+        const { data } = await supabase.from('profiles').select('wallet_balance').eq('id', user.id).maybeSingle()
+        if (data?.wallet_balance != null) setWalletBalance(Number(data.wallet_balance))
+      } catch {}
+    })()
   }, [user?.id])
 
   if (step === "confirmation" && selectedRide) {
     return (
-      <div className="flex-1 p-6 overflow-auto animate-page-enter">
+      <div className="flex-1 p-6 overflow-auto animate-page-enter bg-gradient-to-br from-slate-50 to-slate-100">
         <div className="mb-8 animate-fade-in-up">
           <h1 className="text-3xl font-bold text-foreground mb-2">Booking Confirmation</h1>
           <p className="text-muted-foreground">Review your ride details and confirm</p>
@@ -579,7 +640,7 @@ export function BookRideMain() {
   }
 
   return (
-    <div className="flex-1 p-6 overflow-auto animate-page-enter">
+    <div className="flex-1 p-6 overflow-auto animate-page-enter bg-gradient-to-br from-slate-50 to-slate-100">
       {/* Header */}
       <div className="mb-8 animate-fade-in-up">
         <div className="flex items-center justify-between">
@@ -599,8 +660,8 @@ export function BookRideMain() {
       </div>
 
       <div className="max-w-2xl mx-auto space-y-6">
-        {/* Map */}
-        <Card className="border-0 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+        {/* Map - sticky on mobile */}
+        <Card className="border-0 shadow-md rounded-2xl hover:shadow-xl transition-all duration-300 hover:-translate-y-1 sticky top-0 z-10">
           <CardHeader>
             <CardTitle>Map</CardTitle>
             <CardDescription>Drop pins for pickup and dropoff</CardDescription>
@@ -618,7 +679,7 @@ export function BookRideMain() {
         </Card>
 
         {/* Booking Form */}
-        <Card className="border-0 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+        <Card className="border-0 shadow-md rounded-2xl hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
           <CardHeader>
             <CardTitle>Where would you like to go?</CardTitle>
             <CardDescription>Enter your pickup and destination locations</CardDescription>
@@ -635,6 +696,24 @@ export function BookRideMain() {
                   value={formData.pickup}
                   onChange={(e) => handleLocationChange('pickup', e.target.value)}
                 />
+                {pickupSuggestions.length > 0 && (
+                  <div className="mt-2 border rounded-md bg-background shadow-sm" role="listbox" aria-label="Pickup suggestions">
+                    {pickupSuggestions.map((s, idx) => (
+                      <button
+                        key={idx}
+                        className="w-full text-left px-3 py-2 hover:bg-muted/50"
+                        onClick={() => {
+                          setFormData(prev => ({ ...prev, pickup: s.place_name }))
+                          setCoords(prev => ({ ...prev, pickup: { lat: s.center[1], lng: s.center[0] } }))
+                          setPickupSuggestions([])
+                        }}
+                        role="option"
+                      >
+                        {s.place_name}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -649,6 +728,24 @@ export function BookRideMain() {
                   value={formData.dropoff}
                   onChange={(e) => handleLocationChange('dropoff', e.target.value)}
                 />
+                {dropSuggestions.length > 0 && (
+                  <div className="mt-2 border rounded-md bg-background shadow-sm" role="listbox" aria-label="Drop suggestions">
+                    {dropSuggestions.map((s, idx) => (
+                      <button
+                        key={idx}
+                        className="w-full text-left px-3 py-2 hover:bg-muted/50"
+                        onClick={() => {
+                          setFormData(prev => ({ ...prev, dropoff: s.place_name }))
+                          setCoords(prev => ({ ...prev, dropoff: { lat: s.center[1], lng: s.center[0] } }))
+                          setDropSuggestions([])
+                        }}
+                        role="option"
+                      >
+                        {s.place_name}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -715,9 +812,105 @@ export function BookRideMain() {
             >
               Find Best Rides
             </Button>
+
+            {/* Search loader */}
+            <AnimatePresence>
+              {isSearching && (
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center justify-center py-4">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <div className="w-3 h-3 rounded-full bg-primary animate-bounce" />
+                    <div className="w-3 h-3 rounded-full bg-primary animate-bounce" style={{ animationDelay: '0.1s' }} />
+                    <div className="w-3 h-3 rounded-full bg-primary animate-bounce" style={{ animationDelay: '0.2s' }} />
+                    <span className="ml-2">Searching rides…</span>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </CardContent>
         </Card>
+
+        {/* Favorites */}
+        {favorites.length > 0 && (
+          <Card className="border-0 shadow-md rounded-2xl hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+            <CardHeader>
+              <CardTitle>Saved Favorites</CardTitle>
+              <CardDescription>Quickly reuse your frequent routes</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-wrap gap-2">
+                {favorites.map((fav, idx) => (
+                  <Button key={idx} variant="outline" size="sm" onClick={() => setFormData({ pickup: fav.pickup, dropoff: fav.dropoff, time: "" })}>
+                    {fav.pickup.split(',')[0]} → {fav.dropoff.split(',')[0]}
+                  </Button>
+                ))}
+                {formData.pickup && formData.dropoff && (
+                  <Button size="sm" onClick={() => {
+                    const next = [...favorites, { pickup: formData.pickup, dropoff: formData.dropoff }]
+                    setFavorites(next)
+                    try { localStorage.setItem('ride_favorites', JSON.stringify(next)) } catch {}
+                  }}>Save current</Button>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Results sorting and list */}
+        {step === 'suggestions' && calculatedRides.length > 0 && (
+          <Card className="border-0 shadow-md rounded-2xl hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+            <CardHeader>
+              <CardTitle>Results</CardTitle>
+              <CardDescription>Pick the best option for you</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between mb-4">
+                <div className="text-sm text-muted-foreground">Sort by</div>
+                <Select value={sortBy} onValueChange={setSortBy}>
+                  <SelectTrigger className="w-40">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="cheapest">Cheapest</SelectItem>
+                    <SelectItem value="fastest">Fastest</SelectItem>
+                    <SelectItem value="eco">Most Eco-Friendly</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-3">
+                {calculatedRides
+                  .slice()
+                  .sort((a, b) => sortBy === 'cheapest' ? (parseFloat(String(a.price).replace(/[^0-9.]/g, '')) - parseFloat(String(b.price).replace(/[^0-9.]/g, ''))) : sortBy === 'fastest' ? (parseInt(String(a.time).replace(/[^0-9]/g, '')) - parseInt(String(b.time).replace(/[^0-9]/g, ''))) : (parseFloat(String(b.co2Saved).replace(/[^0-9.]/g, '')) - parseFloat(String(a.co2Saved).replace(/[^0-9]/g, ''))))
+                  .map((s, i) => (
+                    <motion.div key={s.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} className="p-4 border rounded-xl hover:shadow-md transition">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                            <s.icon className="w-5 h-5 text-primary" />
+                          </div>
+                          <div>
+                            <div className="font-medium">{s.type}</div>
+                            <div className="text-xs text-muted-foreground">{s.time} • {s.distanceKm?.toFixed(1)} km • {s.co2Saved} CO₂</div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-4">
+                          <div className="text-lg font-semibold text-primary">{s.price}</div>
+                          <Button onClick={() => setBookingRide(s)}>Book Now</Button>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
+
+      {/* Floating Request button on mobile */}
+      {step === 'suggestions' && (
+        <div className="fixed bottom-6 left-0 right-0 px-6 md:hidden">
+          <Button className="w-full shadow-lg" onClick={() => { if (calculatedRides[0]) setBookingRide(calculatedRides[0]) }}>Request Ride</Button>
+        </div>
+      )}
     </div>
   )
 }

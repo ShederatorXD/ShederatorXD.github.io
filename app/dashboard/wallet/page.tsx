@@ -3,7 +3,7 @@ import { WalletMain } from "@/components/wallet-main"
 
 export default function WalletPage() {
   return (
-    <div className="flex h-screen bg-background">
+    <div className="min-h-screen bg-background flex">
       <DashboardSidebar />
       <WalletMain />
     </div>

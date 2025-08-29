@@ -3,7 +3,7 @@ import { CommunityMain } from "@/components/community-main"
 
 export default function CommunityPage() {
   return (
-    <div className="flex h-screen bg-background">
+    <div className="min-h-screen bg-background flex">
       <DashboardSidebar />
       <CommunityMain />
     </div>

@@ -208,7 +208,7 @@ export function DashboardMain() {
   }
 
   return (
-    <div className="flex-1 p-6 overflow-auto page-enter">
+    <div className="flex-1 p-6 overflow-auto page-enter bg-gradient-to-br from-slate-50 to-slate-100">
       {/* Welcome Section */}
       <div className="mb-8 fade-in">
         <div className="flex items-center justify-between">

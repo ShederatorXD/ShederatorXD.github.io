@@ -40,9 +40,10 @@ export function UPIPaymentButton({
     setIsLoading(true)
 
     try {
-      // If Razorpay is configured, use Checkout (supports UPI) for a real payment flow
+      // If Razorpay is configured, use Checkout (supports UPI Collect) and prefill user's UPI ID
       if (typeof window !== 'undefined' && (PAYMENT_CONFIG as any)?.gateway?.apiKey) {
-        window.location.href = `/api/wallet/card-payment?txn=${transactionId}`
+        const encoded = encodeURIComponent(upiId.trim())
+        window.location.href = `/api/wallet/card-payment?txn=${transactionId}&upiId=${encoded}`
         return
       }
 

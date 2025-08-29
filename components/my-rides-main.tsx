@@ -73,7 +73,7 @@ export function MyRidesMain() {
   }, [rides, activeFilter])
 
   return (
-    <div className="flex-1 p-6 overflow-auto">
+    <div className="flex-1 p-6 overflow-auto bg-gradient-to-br from-slate-50 to-slate-100">
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-foreground mb-2">My Rides</h1>
@@ -82,25 +82,25 @@ export function MyRidesMain() {
 
       {/* Stats Overview */}
       <div className="grid md:grid-cols-4 gap-4 mb-8">
-        <Card className="border-0 shadow-md">
+        <Card className="border-0 shadow-md rounded-2xl hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
           <CardContent className="p-4">
             <div className="text-2xl font-bold text-foreground">{computed.totalRides}</div>
             <div className="text-sm text-muted-foreground">Total Rides</div>
           </CardContent>
         </Card>
-        <Card className="border-0 shadow-md">
+        <Card className="border-0 shadow-md rounded-2xl hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
           <CardContent className="p-4">
             <div className="text-2xl font-bold text-primary">{computed.totalCO2.toFixed(1)} kg</div>
             <div className="text-sm text-muted-foreground">CO₂ Saved</div>
           </CardContent>
         </Card>
-        <Card className="border-0 shadow-md">
+        <Card className="border-0 shadow-md rounded-2xl hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
           <CardContent className="p-4">
             <div className="text-2xl font-bold text-accent">{computed.points.toLocaleString()}</div>
             <div className="text-sm text-muted-foreground">Points Earned</div>
           </CardContent>
         </Card>
-        <Card className="border-0 shadow-md">
+        <Card className="border-0 shadow-md rounded-2xl hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
           <CardContent className="p-4">
             <div className="text-2xl font-bold text-foreground">${computed.totalSpent.toFixed(2)}</div>
             <div className="text-sm text-muted-foreground">Total Spent</div>
@@ -108,7 +108,7 @@ export function MyRidesMain() {
         </Card>
       </div>
 
-      <Card className="border-0 shadow-md mb-6">
+      <Card className="border-0 shadow-md mb-6 rounded-2xl hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>

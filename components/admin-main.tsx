@@ -558,7 +558,7 @@ export function AdminMain() {
         {/* Stats Overview */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           {/* Rides Today */}
-          <Card className="rounded-xl shadow-sm hover:shadow-md transition-shadow">
+          <Card className="rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
@@ -588,7 +588,7 @@ export function AdminMain() {
           </Card>
 
           {/* Active Drivers (using EcoPoints as proxy) */}
-          <Card className="rounded-xl shadow-sm hover:shadow-md transition-shadow">
+          <Card className="rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
@@ -618,7 +618,7 @@ export function AdminMain() {
           </Card>
 
           {/* CO2 Saved */}
-          <Card className="rounded-xl shadow-sm hover:shadow-md transition-shadow">
+          <Card className="rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
@@ -648,7 +648,7 @@ export function AdminMain() {
           </Card>
 
           {/* Revenue Today (placeholder uses newUsers for demo) */}
-          <Card className="rounded-xl shadow-sm hover:shadow-md transition-shadow">
+          <Card className="rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
@@ -684,7 +684,7 @@ export function AdminMain() {
             
 
             {/* Recent Rides */}
-            <Card>
+            <Card className="border-0 shadow-md rounded-2xl hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
                   <span className="flex items-center gap-2">
@@ -772,7 +772,7 @@ export function AdminMain() {
             </Dialog>
 
             {/* Post Moderation (Admin) */}
-            <Card>
+            <Card className="border-0 shadow-md rounded-2xl hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <UserCheck className="w-5 h-5 text-primary" />
@@ -805,7 +805,7 @@ export function AdminMain() {
           {/* Sidebar */}
           <div className="space-y-6">
             {/* User Management (restored to sidebar) */}
-            <Card>
+            <Card className="border-0 shadow-md rounded-2xl hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
               <CardHeader>
                 <CardTitle className="w-full">
                   <div className="w-full flex flex-col gap-2">
@@ -865,7 +865,7 @@ export function AdminMain() {
             </Card>
             
             {/* Active Drivers */}
-            <Card>
+            <Card className="border-0 shadow-md rounded-2xl hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Users className="w-5 h-5 text-primary" />
@@ -909,7 +909,7 @@ export function AdminMain() {
             </Card>
 
             {/* EcoRewards Management */}
-            <Card>
+            <Card className="border-0 shadow-md rounded-2xl hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
                   <span className="flex items-center gap-2">
@@ -1007,7 +1007,7 @@ export function AdminMain() {
             </Card>
 
             {/* Quick Actions */}
-            <Card>
+            <Card className="border-0 shadow-md rounded-2xl hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
               <CardHeader>
                 <CardTitle className="text-lg">Quick Actions</CardTitle>
               </CardHeader>

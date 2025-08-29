@@ -6,6 +6,7 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const transactionId = searchParams.get('txn')
+    const upiId = searchParams.get('upiId')
 
     if (!transactionId) {
       return NextResponse.json({ error: 'Transaction ID required' }, { status: 400 })
@@ -74,6 +75,8 @@ export async function GET(request: NextRequest) {
                 "name": "EcoRide",
                 "description": "Wallet Top-up - ₹${transaction.amount}",
                 "order_id": "${order.id}",
+                "method": { "upi": true, "card": true, "netbanking": true, "wallet": true },
+                ${'"prefill": ' + (upiId ? `{ "method": "upi", "upi": { "vpa": "${upiId}" } }` : `{}`) + ','}
                 "handler": function (response) {
                   // Send success callback
                   fetch('/api/wallet/payment-callback', {

@@ -287,7 +287,7 @@ export function WalletMain() {
   }
 
   return (
-    <div className="flex-1 overflow-auto">
+    <div className="flex-1 overflow-auto bg-gradient-to-br from-slate-50 to-slate-100">
       <div className="p-6 max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-6">
@@ -299,7 +299,7 @@ export function WalletMain() {
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
             {/* Wallet Balance */}
-            <Card>
+            <Card className="border-0 shadow-md rounded-2xl hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Wallet className="w-5 h-5 text-primary" />
@@ -438,7 +438,7 @@ export function WalletMain() {
             </Dialog>
 
             {/* EcoPerks Banner */}
-            <Card className="bg-gradient-to-r from-primary/10 to-green-500/10 border-primary/20">
+            <Card className="border-0 shadow-md rounded-2xl bg-gradient-to-r from-primary/10 to-green-500/10 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center">
@@ -458,7 +458,7 @@ export function WalletMain() {
             </Card>
 
             {/* Recent Transactions */}
-            <Card>
+            <Card className="border-0 shadow-md rounded-2xl hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
                   <span className="flex items-center gap-2">
@@ -537,7 +537,7 @@ export function WalletMain() {
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Quick Actions */}
-            <Card>
+            <Card className="border-0 shadow-md rounded-2xl hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
               <CardHeader>
                 <CardTitle className="text-lg">Quick Actions</CardTitle>
               </CardHeader>
@@ -603,7 +603,7 @@ export function WalletMain() {
             </Dialog>
 
             {/* Payment Methods */}
-            <Card>
+            <Card className="border-0 shadow-md rounded-2xl hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
                   <span>Payment Methods</span>
@@ -642,7 +642,7 @@ export function WalletMain() {
             </Card>
 
             {/* Monthly Summary */}
-            <Card>
+            <Card className="border-0 shadow-md rounded-2xl hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
               <CardHeader>
                 <CardTitle className="text-lg">This Month</CardTitle>
               </CardHeader>

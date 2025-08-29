@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, Fragment } from 'react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { format, formatDistanceToNow } from 'date-fns'
 import { useAuth } from './AuthProvider'
@@ -292,9 +292,8 @@ export function AdminSupportTickets() {
             </TableHeader>
             <TableBody>
               {tickets.map((ticket) => (
-                <>
+                <Fragment key={ticket.id}>
                   <TableRow 
-                    key={ticket.id} 
                     className="cursor-pointer hover:bg-muted/50"
                     onClick={() => toggleExpandTicket(ticket.id)}
                   >
@@ -423,7 +422,7 @@ export function AdminSupportTickets() {
                       </TableCell>
                     </TableRow>
                   )}
-                </>
+                </Fragment>
               ))}
             </TableBody>
           </Table>

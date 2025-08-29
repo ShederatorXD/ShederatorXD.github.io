@@ -104,67 +104,72 @@ export function DashboardSidebar() {
         {items.map((item) => {
           const isActive = pathname === item.href
           return (
-            <Link key={item.href} href={item.href}>
-              <Button
-                variant={isActive ? "default" : "ghost"}
-                className={cn(
-                  "w-full justify-start gap-3 h-12 transition-all duration-200 relative group",
-                  isActive && "bg-primary text-white shadow-lg shadow-primary/25",
-                  !isActive && "hover:bg-gray-50 hover:text-foreground hover:shadow-sm",
-                )}
-              >
-                <item.icon className={cn(
-                  "w-5 h-5 transition-transform duration-200",
-                  isActive && "scale-110",
-                  !isActive && "group-hover:scale-110"
-                )} />
-                <span className={cn(
-                  "font-medium transition-all duration-200",
-                  isActive && "text-white font-semibold",
-                  !isActive && "text-gray-700 group-hover:text-foreground"
-                )}>
-                  {item.title}
-                </span>
-                {isActive && (
-                  <div className="absolute right-2 w-2 h-2 bg-white rounded-full" />
-                )}
-              </Button>
-            </Link>
+            <div key={item.href}>
+              <Link href={item.href}>
+                <Button
+                  variant={isActive ? "default" : "ghost"}
+                  className={cn(
+                    "w-full justify-start gap-3 h-12 transition-all duration-200 relative group",
+                    isActive && "bg-primary text-white shadow-lg shadow-primary/25",
+                    !isActive && "hover:bg-gray-50 hover:text-foreground hover:shadow",
+                  )}
+                >
+                  <item.icon className={cn(
+                    "w-5 h-5 transition-transform duration-200",
+                    isActive && "scale-110",
+                    !isActive && "group-hover:scale-110"
+                  )} />
+                  <span className={cn(
+                    "font-medium transition-all duration-200",
+                    isActive && "text-white font-semibold",
+                    !isActive && "text-gray-700 group-hover:text-foreground"
+                  )}>
+                    {item.title}
+                  </span>
+                  {isActive && (
+                    <div className="absolute right-2 w-2 h-2 bg-white rounded-full" />
+                  )}
+                </Button>
+              </Link>
+
+              {item.title === 'Profile' && (
+                <div className="mt-2 p-4 border rounded-lg bg-gray-50/50">
+                  <div className="flex items-center gap-3 mb-3">
+                    <Avatar className="w-12 h-12 ring-2 ring-white shadow-sm">
+                      <AvatarImage src={user?.avatarUrl || undefined} />
+                      <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-white font-semibold">
+                        {(user?.name || user?.email || 'U').slice(0, 2).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-semibold text-sm text-gray-900 truncate">
+                        {user?.name || 'User'}
+                      </div>
+                      <div className="text-xs text-gray-500 truncate">{user?.email || ''}</div>
+                      {user?.email?.endsWith('@kiit.ac.in') && (
+                        <div className="mt-1">
+                          <span className="text-[10px] px-2 py-1 rounded-full bg-blue-500/15 text-blue-600 font-medium">KIIT ADMIN</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="w-full justify-start gap-2 h-10 bg-white hover:bg-gray-50 hover:border-gray-300 transition-all duration-200" 
+                    onClick={handleLogout}
+                  >
+                    <LogOut className="w-4 h-4" />
+                    Sign Out
+                  </Button>
+                </div>
+              )}
+            </div>
           )
         })}
       </nav>
 
-      {/* User Section */}
-      <div className="p-4 border-t border-gray-100 bg-gray-50/50">
-        <div className="flex items-center gap-3 mb-4">
-          <Avatar className="w-12 h-12 ring-2 ring-white shadow-sm">
-            <AvatarImage src={user?.avatarUrl || undefined} />
-            <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-white font-semibold">
-              {(user?.name || user?.email || 'U').slice(0, 2).toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex-1 min-w-0">
-            <div className="font-semibold text-sm text-gray-900 truncate">
-              {user?.name || 'User'}
-            </div>
-            <div className="text-xs text-gray-500 truncate">{user?.email || ''}</div>
-            {user?.email?.endsWith('@kiit.ac.in') && (
-              <div className="mt-1">
-                <span className="text-[10px] px-2 py-1 rounded-full bg-blue-500/15 text-blue-600 font-medium">KIIT ADMIN</span>
-              </div>
-            )}
-          </div>
-        </div>
-        <Button 
-          variant="outline" 
-          size="sm" 
-          className="w-full justify-start gap-2 h-10 bg-white hover:bg-gray-50 hover:border-gray-300 transition-all duration-200" 
-          onClick={handleLogout}
-        >
-          <LogOut className="w-4 h-4" />
-          Sign Out
-        </Button>
-      </div>
+      {/* Removed bottom user section; profile moved under Profile nav item */}
     </div>
   )
 }

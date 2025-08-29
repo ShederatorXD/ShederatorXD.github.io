@@ -354,7 +354,7 @@ export function SupportMain() {
   }
 
   return (
-    <div className="flex-1 overflow-auto">
+    <div className="flex-1 overflow-auto bg-gradient-to-br from-slate-50 to-slate-100">
       <div className="p-6 max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-6">
@@ -375,7 +375,7 @@ export function SupportMain() {
               {/* Main Content */}
               <div className="lg:col-span-2 space-y-6">
                 {/* Quick Help */}
-                <Card>
+                <Card className="border-0 shadow-md rounded-2xl hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <HelpCircle className="w-5 h-5 text-primary" />
@@ -413,7 +413,7 @@ export function SupportMain() {
                 </Card>
 
                 {/* FAQ Section */}
-                <Card>
+                <Card className="border-0 shadow-md rounded-2xl hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
                   <CardHeader>
                     <CardTitle>Frequently Asked Questions</CardTitle>
                   </CardHeader>
@@ -439,7 +439,7 @@ export function SupportMain() {
                 </Card>
 
                 {/* Contact Form */}
-                <Card>
+                <Card className="border-0 shadow-md rounded-2xl hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
                   <CardHeader>
                     <CardTitle>Contact Support</CardTitle>
                   </CardHeader>
@@ -509,7 +509,7 @@ export function SupportMain() {
               {/* Sidebar */}
               <div className="space-y-6">
                 {/* AI Chat Assistant */}
-                <Card>
+                <Card className="border-0 shadow-md rounded-2xl hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <Bot className="w-5 h-5 text-primary" />
@@ -563,7 +563,7 @@ export function SupportMain() {
                 </Card>
 
                 {/* Support Status */}
-                <Card>
+                <Card className="border-0 shadow-md rounded-2xl hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
                   <CardHeader>
                     <CardTitle className="text-lg">Support Status</CardTitle>
                   </CardHeader>

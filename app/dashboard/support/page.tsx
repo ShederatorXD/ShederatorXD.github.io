@@ -3,7 +3,7 @@ import { SupportMain } from "@/components/support-main"
 
 export default function SupportPage() {
   return (
-    <div className="flex h-screen bg-background">
+    <div className="min-h-screen bg-background flex">
       <DashboardSidebar />
       <SupportMain />
     </div>

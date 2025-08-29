@@ -103,7 +103,7 @@ export function ImpactMain() {
 
   if (loading) {
     return (
-      <div className="flex-1 p-6 overflow-auto">
+      <div className="flex-1 p-6 overflow-auto bg-gradient-to-br from-slate-50 to-slate-100">
         <div className="min-h-[70vh] flex items-center justify-center">
           <div className="w-full max-w-lg eco-anim">
             <div className="relative h-36">
@@ -170,14 +170,14 @@ export function ImpactMain() {
   }
 
   return (
-    <div className="flex-1 p-6 overflow-auto">
+    <div className="flex-1 p-6 overflow-auto bg-gradient-to-br from-slate-50 to-slate-100">
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-foreground mb-2">Community Impact Dashboard</h1>
         <p className="text-muted-foreground">See how your sustainable choices are making a difference globally</p>
       </div>
 
-      <Card className="border-0 shadow-md mb-8 bg-gradient-to-r from-primary/10 to-accent/10">
+      <Card className="border-0 shadow-md mb-8 bg-gradient-to-r from-primary/10 to-accent/10 rounded-2xl hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
         <CardContent className="p-6">
           <div className="text-center">
             <TreePine className="w-12 h-12 text-primary mx-auto mb-4" />
@@ -193,7 +193,7 @@ export function ImpactMain() {
 
       {/* Impact Overview */}
       <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <Card className="border-0 shadow-md">
+        <Card className="border-0 shadow-md rounded-2xl hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Your CO₂ Saved</CardTitle>
             <Leaf className="h-4 w-4 text-primary" />
@@ -204,7 +204,7 @@ export function ImpactMain() {
           </CardContent>
         </Card>
 
-        <Card className="border-0 shadow-md">
+        <Card className="border-0 shadow-md rounded-2xl hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Trees Equivalent</CardTitle>
             <TreePine className="h-4 w-4 text-primary" />
@@ -215,7 +215,7 @@ export function ImpactMain() {
           </CardContent>
         </Card>
 
-        <Card className="border-0 shadow-md">
+        <Card className="border-0 shadow-md rounded-2xl hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Community Rank</CardTitle>
             <Award className="h-4 w-4 text-accent" />
@@ -233,7 +233,7 @@ export function ImpactMain() {
           </CardContent>
         </Card>
 
-        <Card className="border-0 shadow-md">
+        <Card className="border-0 shadow-md rounded-2xl hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Shared vs Solo</CardTitle>
             <Users className="h-4 w-4 text-primary" />
@@ -246,7 +246,7 @@ export function ImpactMain() {
       </div>
 
       <div className="grid lg:grid-cols-2 gap-6 mb-6">
-        <Card className="border-0 shadow-md">
+        <Card className="border-0 shadow-md rounded-2xl hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <BarChart3 className="w-5 h-5 text-primary" />
@@ -308,7 +308,7 @@ export function ImpactMain() {
         </Card>
       </div>
 
-      <Card className="border-0 shadow-md mb-6">
+      <Card className="border-0 shadow-md mb-6 rounded-2xl hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Award className="w-5 h-5 text-accent" />
@@ -332,7 +332,7 @@ export function ImpactMain() {
 
       {/* Impact Comparison */}
       <div className="grid lg:grid-cols-2 gap-6">
-        <Card className="border-0 shadow-md">
+        <Card className="border-0 shadow-md rounded-2xl hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-primary" />
@@ -367,7 +367,7 @@ export function ImpactMain() {
           </CardContent>
         </Card>
 
-        <Card className="border-0 shadow-md">
+        <Card className="border-0 shadow-md rounded-2xl hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
           <CardHeader>
             <CardTitle>Global Community Impact</CardTitle>
             <CardDescription>Our collective environmental contribution</CardDescription>

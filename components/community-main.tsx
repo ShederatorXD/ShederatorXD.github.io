@@ -655,7 +655,7 @@ export function CommunityMain() {
   }
 
   return (
-    <div className="flex-1 overflow-auto">
+    <div className="flex-1 overflow-auto bg-gradient-to-br from-slate-50 to-slate-100">
       <div className="p-6 max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-6">
@@ -667,7 +667,7 @@ export function CommunityMain() {
           {/* Main Feed */}
           <div className="lg:col-span-2 space-y-4">
                          {/* Composer */}
-             <Card className="border-0 shadow-md bg-gradient-to-r from-primary/5 to-accent/5">
+             <Card className="border-0 shadow-md rounded-2xl bg-gradient-to-r from-primary/5 to-accent/5 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
                <CardHeader className="pb-3">
                  <CardTitle className="flex items-center gap-2 text-lg">
                    <Users className="w-5 h-5 text-primary" />
@@ -748,7 +748,7 @@ export function CommunityMain() {
              </Card>
 
             {/* Community Feed */}
-            <Card>
+            <Card className="border-0 shadow-md rounded-2xl hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Users className="w-5 h-5 text-primary" />
@@ -968,7 +968,7 @@ export function CommunityMain() {
             </Card>
 
             {/* Active Challenges (moved below feed) */}
-            <Card>
+            <Card className="border-0 shadow-md rounded-2xl hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Trophy className="w-5 h-5 text-primary" />
@@ -1002,7 +1002,7 @@ export function CommunityMain() {
           {/* Sidebar */}
           <div className="space-y-4">
             {/* City Leaderboard */}
-            <Card>
+            <Card className="border-0 shadow-md rounded-2xl hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <TrendingUp className="w-5 h-5 text-primary" />
@@ -1089,7 +1089,7 @@ export function CommunityMain() {
             </Card>
 
             {/* Community Stats */}
-            <Card>
+            <Card className="border-0 shadow-md rounded-2xl hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
               <CardHeader>
                 <CardTitle className="text-lg">Community Impact</CardTitle>
               </CardHeader>
